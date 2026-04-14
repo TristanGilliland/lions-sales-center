@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, Phone, MessageSquare, Eye, X, Plus, LogOut, Settings, TrendingUp, Activity, Clock, Award, Download } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ChevronDown, Phone, MessageSquare, Eye, X, Plus, LogOut, Settings, TrendingUp, Activity, Clock, Award } from 'lucide-react';
 
 export default function SalesCommandCenter() {
-  const [authState, setAuthState] = useState('login');
+  const [authState, setAuthState] = useState('login'); // 'login', 'dashboard'
   const [currentUser, setCurrentUser] = useState(null);
   const [deals, setDeals] = useState([]);
   const [activities, setActivities] = useState([]);
   const [showNewDeal, setShowNewDeal] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState(null);
   const [filterRep, setFilterRep] = useState('all');
-  const [filterSource, setFilterSource] = useState('all');
-  const [viewMode, setViewMode] = useState('pipeline');
-  const [installPrompt, setInstallPrompt] = useState(null);
+  const [viewMode, setViewMode] = useState('pipeline'); // 'pipeline', 'performance', 'activity'
 
+  // Demo sales reps
   const salesReps = [
-    { id: 'tristan', name: 'Tristan (Owner)', role: 'Owner' },
-    { id: 'michael', name: 'Michael', role: 'Sales Rep' },
+    { id: 'tristan', name: 'Tristan', role: 'Owner' },
+    { id: 'rep1', name: 'Michael N', role: 'Sales Rep' },
     { id: 'rep2', name: 'Sales Rep 2', role: 'Sales Rep' }
   ];
 
@@ -26,16 +25,6 @@ export default function SalesCommandCenter() {
 
   const stages = ['Proposals', 'Negotiating', 'Sold', 'Lost'];
 
-  // PWA Install Prompt
-  useEffect(() => {
-    const handler = (e) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
   // Load deals and activities
   useEffect(() => {
     const saved = localStorage.getItem('lionsSalesDeals');
@@ -43,7 +32,6 @@ export default function SalesCommandCenter() {
       setDeals(JSON.parse(saved));
     } else {
       setDeals([
-        // HCP Deals
         {
           id: '1',
           customerName: 'Smith Family',
@@ -56,8 +44,7 @@ export default function SalesCommandCenter() {
           equipmentOrdered: false,
           commissionTech: 'Ed Pfeiffer',
           estimateViews: 1,
-          lastActivity: '2025-04-14',
-          source: 'HCP'
+          lastActivity: '2025-04-14'
         },
         {
           id: '2',
@@ -65,14 +52,13 @@ export default function SalesCommandCenter() {
           amount: 8500,
           stage: 'Negotiating',
           createdDate: '2025-04-08',
-          salesRep: 'michael',
+          salesRep: 'rep1',
           equipment: 'Full HVAC Upgrade',
           sold: false,
           equipmentOrdered: true,
           commissionTech: 'Jake Casmay',
           estimateViews: 3,
-          lastActivity: '2025-04-13',
-          source: 'HCP'
+          lastActivity: '2025-04-13'
         },
         {
           id: '3',
@@ -86,27 +72,35 @@ export default function SalesCommandCenter() {
           equipmentOrdered: true,
           commissionTech: 'Greg Janowski',
           estimateViews: 2,
-          lastActivity: '2025-04-12',
-          source: 'HCP'
+          lastActivity: '2025-04-12'
         },
-        // OnCall Air Deals
         {
-          id: 'oncall-ENGCDVZDA',
-          customerName: 'Bob Dylan',
-          amount: 57808,
-          stage: 'Proposals',
-          createdDate: '2024-10-25',
-          salesRep: 'michael',
-          equipment: 'TEST - OnCall Air Proposal',
+          id: '4',
+          customerName: 'Davis Offices',
+          amount: 12500,
+          stage: 'Sold',
+          createdDate: '2025-03-20',
+          salesRep: 'rep1',
+          equipment: 'Commercial System',
+          sold: true,
+          equipmentOrdered: true,
+          commissionTech: 'Scott Deakin',
+          estimateViews: 4,
+          lastActivity: '2025-04-10'
+        },
+        {
+          id: '5',
+          customerName: 'Miller Auto Shop',
+          amount: 4800,
+          stage: 'Lost',
+          createdDate: '2025-04-05',
+          salesRep: 'rep2',
+          equipment: 'Industrial HVAC',
           sold: false,
           equipmentOrdered: false,
-          commissionTech: 'Gabriela Macintosh',
-          estimateViews: 13,
-          lastActivity: '2025-01-06',
-          source: 'OnCall Air',
-          consultationCode: 'ENGCDVZDA',
-          customerPhone: '1231231234',
-          customerEmail: 'test@mail.com'
+          commissionTech: 'Tyler Gilliland',
+          estimateViews: 2,
+          lastActivity: '2025-04-11'
         }
       ]);
     }
@@ -139,24 +133,14 @@ export default function SalesCommandCenter() {
     setCurrentUser(null);
     setAuthState('login');
     setFilterRep('all');
-    setFilterSource('all');
     setViewMode('pipeline');
-  };
-
-  const handleInstall = async () => {
-    if (installPrompt) {
-      installPrompt.prompt();
-      const { outcome } = await installPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setInstallPrompt(null);
-      }
-    }
   };
 
   const updateDeal = (dealId, updates) => {
     const oldDeal = deals.find(d => d.id === dealId);
     setDeals(deals.map(d => d.id === dealId ? { ...d, ...updates, lastActivity: new Date().toISOString().split('T')[0] } : d));
     
+    // Log activity
     if (updates.stage && oldDeal.stage !== updates.stage) {
       logActivity(dealId, 'stage_change', `Moved from ${oldDeal.stage} to ${updates.stage}`, 'status_change');
     }
@@ -175,8 +159,7 @@ export default function SalesCommandCenter() {
       activity,
       details,
       type,
-      salesRep: deal?.salesRep,
-      source: deal?.source
+      salesRep: deal?.salesRep
     };
     setActivities([newActivity, ...activities]);
   };
@@ -195,7 +178,6 @@ export default function SalesCommandCenter() {
       estimateViews: 0,
       lastActivity: new Date().toISOString().split('T')[0],
       salesRep: currentUser.id,
-      source: 'HCP',
       ...newDeal
     };
     setDeals([...deals, deal]);
@@ -203,15 +185,9 @@ export default function SalesCommandCenter() {
     setShowNewDeal(false);
   };
 
-  // Filter deals
-  let filteredDeals = deals;
-  if (filterRep !== 'all') {
-    filteredDeals = filteredDeals.filter(d => d.salesRep === filterRep);
-  }
-  if (filterSource !== 'all') {
-    filteredDeals = filteredDeals.filter(d => d.source === filterSource);
-  }
-
+  // Calculate metrics
+  const filteredDeals = filterRep === 'all' ? deals : deals.filter(d => d.salesRep === filterRep);
+  
   const metrics = {
     totalPipeline: filteredDeals.reduce((sum, d) => sum + (d.stage !== 'Lost' ? d.amount : 0), 0),
     wonDeals: filteredDeals.filter(d => d.sold).length,
@@ -219,6 +195,19 @@ export default function SalesCommandCenter() {
     totalDeals: filteredDeals.length,
     avgDealSize: filteredDeals.length > 0 ? Math.round(filteredDeals.reduce((sum, d) => sum + d.amount, 0) / filteredDeals.length) : 0
   };
+
+  // Rep performance
+  const repPerformance = salesReps.map(rep => {
+    const repDeals = deals.filter(d => d.salesRep === rep.id);
+    return {
+      ...rep,
+      totalDeals: repDeals.length,
+      wonDeals: repDeals.filter(d => d.sold).length,
+      pipeline: repDeals.reduce((sum, d) => sum + (d.stage !== 'Lost' ? d.amount : 0), 0),
+      closureRate: repDeals.length > 0 ? Math.round((repDeals.filter(d => d.sold).length / repDeals.length) * 100) : 0,
+      avgDealSize: repDeals.length > 0 ? Math.round(repDeals.reduce((sum, d) => sum + d.amount, 0) / repDeals.length) : 0
+    };
+  });
 
   const dealsByStage = stages.map(stage => ({
     stage,
@@ -239,7 +228,7 @@ export default function SalesCommandCenter() {
         <div className="w-full max-w-md">
           <div className="text-center mb-12">
             <div className="inline-block mb-6 px-4 py-2 bg-orange-500/20 border border-orange-500/40 rounded-lg">
-              <span className="text-orange-500 text-sm font-semibold">LIONS HEATING & AC</span>
+              <span className="text-orange-400 text-sm font-semibold">LIONS HEATING & AC</span>
             </div>
             <h1 style={{ fontFamily: 'Syne' }} className="text-5xl font-bold text-white mb-2">
               Sales Command
@@ -260,7 +249,7 @@ export default function SalesCommandCenter() {
                     <p className="text-xs text-gray-400">{rep.role}</p>
                   </div>
                   <div className="w-8 h-8 bg-orange-500/20 group-hover:bg-orange-500/40 rounded-lg flex items-center justify-center transition-colors">
-                    <span className="text-orange-500 text-sm">→</span>
+                    <span className="text-orange-400 text-sm">→</span>
                   </div>
                 </div>
               </button>
@@ -268,8 +257,8 @@ export default function SalesCommandCenter() {
           </div>
 
           <div className="mt-12 p-4 bg-gray-900/50 border border-gray-800 rounded-lg text-center">
-            <p className="text-gray-400 text-sm">Sales Command Center</p>
-            <p className="text-gray-500 text-xs mt-1">HCP + OnCall Air Integration</p>
+            <p className="text-gray-400 text-sm">Demo Mode</p>
+            <p className="text-gray-500 text-xs mt-1">Data saved to browser storage</p>
           </div>
         </div>
       </div>
@@ -294,27 +283,6 @@ export default function SalesCommandCenter() {
         
         .deal-card {
           animation: slideInUp 0.4s ease-out;
-        }
-
-        .source-label {
-          display: inline-block;
-          padding: 2px 8px;
-          border-radius: 4px;
-          font-size: 10px;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-
-        .source-hcp {
-          background: #1C1C1C;
-          color: #E8A020;
-          border: 1px solid #E8A020;
-        }
-
-        .source-oncall {
-          background: #1e40af;
-          color: #93c5fd;
-          border: 1px solid #93c5fd;
         }
       `}</style>
 
@@ -360,15 +328,6 @@ export default function SalesCommandCenter() {
                 Activity
               </button>
             </div>
-            {installPrompt && (
-              <button
-                onClick={handleInstall}
-                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2 text-xs"
-              >
-                <Download size={16} />
-                Install
-              </button>
-            )}
             <button
               onClick={() => setShowNewDeal(true)}
               className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
@@ -386,7 +345,7 @@ export default function SalesCommandCenter() {
         </div>
       </div>
 
-      {/* Pipeline View */}
+      {/* View Mode: Pipeline */}
       {viewMode === 'pipeline' && (
         <>
           {/* Metrics Bar */}
@@ -401,7 +360,7 @@ export default function SalesCommandCenter() {
             </div>
             <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
               <p className="text-gray-400 text-xs uppercase">Rate</p>
-              <p className="text-2xl font-bold text-orange-500 mt-1">{metrics.closureRate}%</p>
+              <p className="text-2xl font-bold text-orange-400 mt-1">{metrics.closureRate}%</p>
             </div>
             <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
               <p className="text-gray-400 text-xs uppercase">Deals</p>
@@ -413,10 +372,10 @@ export default function SalesCommandCenter() {
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="px-6 py-4 border-b border-gray-800 flex gap-4">
+          {/* Filter */}
+          <div className="px-6 py-4 border-b border-gray-800">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">Rep:</span>
+              <span className="text-sm text-gray-400">Filter by:</span>
               <select
                 value={filterRep}
                 onChange={(e) => setFilterRep(e.target.value)}
@@ -426,18 +385,6 @@ export default function SalesCommandCenter() {
                 {salesReps.map(rep => (
                   <option key={rep.id} value={rep.id}>{rep.name}</option>
                 ))}
-              </select>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400">Source:</span>
-              <select
-                value={filterSource}
-                onChange={(e) => setFilterSource(e.target.value)}
-                className="bg-gray-900 border border-gray-800 text-white rounded-lg px-3 py-2 text-sm"
-              >
-                <option value="all">All Sources</option>
-                <option value="HCP">HouseCall Pro</option>
-                <option value="OnCall Air">OnCall Air</option>
               </select>
             </div>
           </div>
@@ -460,14 +407,9 @@ export default function SalesCommandCenter() {
                         onClick={() => setSelectedDeal(deal)}
                         className="deal-card cursor-pointer bg-gray-900 border border-gray-800 hover:border-orange-500 rounded-lg p-4 transition-all hover:shadow-lg hover:shadow-orange-500/10 group"
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <p className="font-semibold text-white group-hover:text-orange-400 transition-colors text-sm flex-1">
-                            {deal.customerName}
-                          </p>
-                          <span className={`source-label ${deal.source === 'HCP' ? 'source-hcp' : 'source-oncall'}`}>
-                            {deal.source === 'HCP' ? 'HCP' : 'OnCall'}
-                          </span>
-                        </div>
+                        <p className="font-semibold text-white group-hover:text-orange-400 transition-colors text-sm">
+                          {deal.customerName}
+                        </p>
                         <p className="text-xl font-bold text-gray-100 mt-2">${deal.amount.toLocaleString()}</p>
                         <p className="text-xs text-gray-500 mt-1">{deal.equipment}</p>
 
@@ -482,7 +424,7 @@ export default function SalesCommandCenter() {
                               className={`px-2 py-1 rounded text-xs font-semibold transition-colors ${
                                 deal.sold
                                   ? 'bg-green-500/20 text-green-400'
-                                  : 'bg-gray-800 text-gray-300 hover:bg-orange-500/20 hover:text-orange-500'
+                                  : 'bg-gray-800 text-gray-300 hover:bg-orange-500/20 hover:text-orange-400'
                               }`}
                             >
                               {deal.sold ? '✓ Sold' : 'Open'}
@@ -530,58 +472,72 @@ export default function SalesCommandCenter() {
         </>
       )}
 
-      {/* Performance View */}
+      {/* View Mode: Performance */}
       {viewMode === 'performance' && (
         <div className="p-6">
           <h2 className="text-xl font-bold text-white mb-6">Sales Rep Performance</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {salesReps.map(rep => {
-              const repDeals = deals.filter(d => d.salesRep === rep.id);
-              return (
-                <div key={rep.id} className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-orange-500 transition-colors">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="font-semibold text-white">{rep.name}</h3>
-                      <p className="text-xs text-gray-500">{rep.role}</p>
-                    </div>
-                    <Award size={20} className="text-orange-500" />
+            {repPerformance.map(rep => (
+              <div key={rep.id} className="bg-gray-900 border border-gray-800 rounded-lg p-6 hover:border-orange-500 transition-colors">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="font-semibold text-white">{rep.name}</h3>
+                    <p className="text-xs text-gray-500">{rep.role}</p>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Total Deals</span>
-                      <span className="text-white font-bold">{repDeals.length}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Deals Won</span>
-                      <span className="text-green-400 font-bold">{repDeals.filter(d => d.sold).length}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Close Rate</span>
-                      <span className="text-orange-500 font-bold">
-                        {repDeals.length > 0 ? Math.round((repDeals.filter(d => d.sold).length / repDeals.length) * 100) : 0}%
-                      </span>
-                    </div>
-                    <div className="border-t border-gray-800 pt-3 flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Pipeline Value</span>
-                      <span className="text-blue-400 font-bold">${(repDeals.reduce((sum, d) => sum + (d.stage !== 'Lost' ? d.amount : 0), 0) / 1000).toFixed(1)}K</span>
-                    </div>
+                  <Award size={20} className="text-orange-400" />
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Total Deals</span>
+                    <span className="text-white font-bold">{rep.totalDeals}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Deals Won</span>
+                    <span className="text-green-400 font-bold">{rep.wonDeals}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Close Rate</span>
+                    <span className="text-orange-400 font-bold">{rep.closureRate}%</span>
+                  </div>
+                  <div className="border-t border-gray-800 pt-3 flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Pipeline Value</span>
+                    <span className="text-blue-400 font-bold">${(rep.pipeline / 1000).toFixed(1)}K</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 text-sm">Avg Deal Size</span>
+                    <span className="text-white font-bold">${(rep.avgDealSize / 1000).toFixed(1)}K</span>
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Activity View */}
+      {/* View Mode: Activity */}
       {viewMode === 'activity' && (
         <div className="p-6">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              <Activity size={24} className="text-orange-500" />
+              <Activity size={24} className="text-orange-400" />
               Recent Activity
             </h2>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400">Filter:</span>
+              <select
+                value={filterRep}
+                onChange={(e) => setFilterRep(e.target.value)}
+                className="bg-gray-900 border border-gray-800 text-white rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="all">All Reps</option>
+                {salesReps.map(rep => (
+                  <option key={rep.id} value={rep.id}>{rep.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
+
           <div className="space-y-3 max-w-2xl">
             {filteredActivities.length === 0 ? (
               <div className="text-center py-12">
@@ -599,7 +555,7 @@ export default function SalesCommandCenter() {
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${
                       activity.type === 'milestone' ? 'bg-green-500/20 text-green-400' :
                       activity.type === 'status_change' ? 'bg-blue-500/20 text-blue-400' :
-                      activity.type === 'call' ? 'bg-orange-500/20 text-orange-500' :
+                      activity.type === 'call' ? 'bg-orange-500/20 text-orange-400' :
                       'bg-purple-500/20 text-purple-400'
                     }`}>
                       {activity.type}
@@ -757,10 +713,7 @@ function DealDetailModal({ deal, technicians, stages, onUpdate, onDelete, onClos
     <div className="fixed inset-0 bg-black/50 backdrop-blur z-50 flex items-center justify-center p-4">
       <div className="bg-gray-900 border border-gray-800 rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6 sticky top-0 bg-gray-900 pb-4 border-b border-gray-800">
-          <div>
-            <h2 className="text-xl font-bold text-white">{deal.customerName}</h2>
-            <p className="text-xs text-gray-500 mt-1">Source: {deal.source === 'HCP' ? 'HouseCall Pro' : 'OnCall Air'}</p>
-          </div>
+          <h2 className="text-xl font-bold text-white">{deal.customerName}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
             <X size={20} />
           </button>
