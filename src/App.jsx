@@ -43,7 +43,6 @@ export default function SalesCommandCenter() {
     if (saved) {
       setDeals(JSON.parse(saved));
     } else {
-      setDeals([
 // Fetch real HCP estimates
 fetch('/.netlify/functions/hcp-fetch-estimates')
   .then(res => res.json())
@@ -56,11 +55,7 @@ fetch('/.netlify/functions/hcp-fetch-estimates')
     console.error('Failed to load HCP deals:', err);
     setDeals([]);
   });
-    setAuthState('login');
-    setFilterRep('all');
-    setFilterSource('all');
-    setViewMode('pipeline');
-  };
+}, []); 
 
   const handleInstall = async () => {
     if (installPrompt) {
