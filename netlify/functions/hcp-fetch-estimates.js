@@ -1,4 +1,4 @@
-const nodeFetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 const HCP_API_KEY = process.env.HCP_API_KEY;
 const HCP_BASE_URL = 'https://api.housecallpro.com';
