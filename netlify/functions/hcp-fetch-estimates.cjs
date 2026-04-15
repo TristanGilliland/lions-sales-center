@@ -79,10 +79,6 @@ function mapJobStatusToStage(status) {
   return statusMap[status] || 'Proposals';
 }
 
-const HCP_API_KEY = process.env.HCP_API_KEY;
-const HCP_COMPANY_ID = 'd229639d-85d8-44ff-8831-27aa57333f50';
-const HCP_BASE_URL = 'https://api.housecallpro.com2';
-
 export const handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method not allowed' };
