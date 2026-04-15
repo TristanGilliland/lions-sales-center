@@ -1,5 +1,4 @@
 
-
 const HCP_API_KEY = process.env.HCP_API_KEY;
 const HCP_BASE_URL = 'https://api.housecallpro.com';
 
@@ -14,7 +13,7 @@ export const handler = async (event) => {
     const url = `${HCP_BASE_URL}/jobs?limit=100`;
     console.log('Fetching from:', url);
     
-    const jobsRes = await nodeFetch(url, {
+    const jobsRes = await Fetch(url, {
       headers: {
         'Authorization': `Token ${HCP_API_KEY}`,
         'Content-Type': 'application/json'
