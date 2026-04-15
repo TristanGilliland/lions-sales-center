@@ -41,21 +41,99 @@ export default function SalesCommandCenter() {
   useEffect(() => {
     const saved = localStorage.getItem('lionsSalesDeals');
     if (saved) {
-      setDeals(JSON.parse(saved));
-    } else {
-      setDeals([
-// Fetch real HCP estimates
-fetch('/.netlify/functions/hcp-fetch-estimates')
-  .then(res => res.json())
-  .then(data => {
-    if (data.deals) {
-      setDeals(data.deals);
+      setDeals(JSON.parse(save)setDeals([
+        // HCP Deals
+        {
+          id: '1',
+          customerName: 'Smith Family',
+          amount: 5200,
+          stage: 'Proposals',
+          createdDate: '2025-04-10',
+          salesRep: 'tristan',
+          equipment: 'AC System',
+          sold: false,
+          equipmentOrdered: false,
+          commissionTech: 'Ed Pfeiffer',
+          estimateViews: 1,
+          lastActivity: '2025-04-14',
+          source: 'HCP'
+        },
+        {
+          id: '2',
+          customerName: 'Johnson Corp',
+          amount: 8500,
+          stage: 'Negotiating',
+          createdDate: '2025-04-08',
+          salesRep: 'michael',
+          equipment: 'Full HVAC Upgrade',
+          sold: false,
+          equipmentOrdered: true,
+          commissionTech: 'Jake Casmay',
+          estimateViews: 3,
+          lastActivity: '2025-04-13',
+          source: 'HCP'
+        },
+        {
+          id: '3',
+          customerName: 'Brown Residence',
+          amount: 3200,
+          stage: 'Sold',
+          createdDate: '2025-04-01',
+          salesRep: 'tristan',
+          equipment: 'Furnace',
+          sold: true,
+          equipmentOrdered: true,
+          commissionTech: 'Greg Janowski',
+          estimateViews: 2,
+          lastActivity: '2025-04-12',
+          source: 'HCP'
+        },
+        // OnCall Air Deals
+        {
+          id: 'oncall-ENGCDVZDA',
+          customerName: 'Bob Dylan',
+          amount: 57808,
+          stage: 'Proposals',
+          createdDate: '2024-10-25',
+          salesRep: 'michael',
+          equipment: 'TEST - OnCall Air Proposal',
+          sold: false,
+          equipmentOrdered: false,
+          commissionTech: 'Gabriela Macintosh',
+          estimateViews: 13,
+          lastActivity: '2025-01-06',
+          source: 'OnCall Air',
+          consultat''
+        }
+      ]);
     }
-  })
-  .catch(err => {
-    console.error('Failed to load HCP deals:', err);
-    setDeals([]);
-  });
+
+    const savedActivities = localStorage.getItem('lionsSalesActivities');
+    if (savedActivities) {
+      setActivities(JSON.parse(savedActivities));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (deals.length > 0) {
+      localStorage.setItem('lionsSalesDeals', JSON.stringify(deals));
+    }
+  }, [deals]);
+
+  useEffect(() => {
+    if (activities.length > 0) {
+      localStorage.setItem('lionsSalesActivities', JSON.stringify(activities));
+    }
+  }, [activities]);
+
+  const handleLogin = (repId) => {
+    const rep = salesReps.find(r => r.id === repId);
+    setCurrentUser(rep);
+    setAuthState('dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
     setAuthState('login');
     setFilterRep('all');
     setFilterSource('all');
