@@ -102,7 +102,7 @@ const handleLogin = (repId) => {
       activity,
       details,
       type,
-'≈      salesRep: deal?.salesRep,
+      salesRep: deal?.salesRep,
       source: deal?.source
     };
     setActivities([newActivity, ...activities]);
