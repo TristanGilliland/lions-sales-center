@@ -55,6 +55,7 @@ fetch('/.netlify/functions/hcp-fetch-estimates')
     console.error('Failed to load HCP deals:', err);
     setDeals([]);
   });
+}
 }, []); 
 
   const handleInstall = async () => {
