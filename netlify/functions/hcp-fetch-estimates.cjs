@@ -79,20 +79,6 @@ function mapJobStatusToStage(status) {
   return statusMap[status] || 'Proposals';
 }
 
-  if (event.httpMethod !== 'GET') {
-    return { statusCode: 405, body: 'Method not allowed' };
-  }
-
-  try {
-    // Fetch all jobs from HCP
-    const jobsRes = await fetch(`${HCP_BASE_URL}/jobs?limit=100`, {
-      headers: {
-        'Authorization': `Token ${HCP_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!jobsRes.ok) {
       console.error('HCP API error:', jobsRes.status, await jobsRes.text());
       return {
         statusCode: 500,
@@ -136,15 +122,3 @@ function mapJobStatusToStage(status) {
   }
 };
 
-function mapJobStatusToStage(status) {
-  const statusMap = {
-    'scheduled': 'Proposals',
-    'in_progress': 'Negotiating',
-    'completed': 'Sold',
-    'invoiced': 'Sold',
-    'cancelled': 'Lost',
-    'no_show': 'Lost',
-    'quote': 'Proposals'
-  };
-  return statusMap[status] || 'Proposals';
-}
