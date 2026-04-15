@@ -67,7 +67,19 @@ fetch('/.netlify/functions/hcp-fetch-estimates')
       }
     }
   };
+const handleLogin = (repId) => {
+    const rep = salesReps.find(r => r.id === repId);
+    setCurrentUser(rep);
+    setAuthState('dashboard');
+  };
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setAuthState('login');
+    setFilterRep('all');
+    setFilterSource('all');
+    setViewMode('pipeline');
+  };
   const updateDeal = (dealId, updates) => {
     const oldDeal = deals.find(d => d.id === dealId);
     setDeals(deals.map(d => d.id === dealId ? { ...d, ...updates, lastActivity: new Date().toISOString().split('T')[0] } : d));
@@ -90,7 +102,7 @@ fetch('/.netlify/functions/hcp-fetch-estimates')
       activity,
       details,
       type,
-      salesRep: deal?.salesRep,
+'≈      salesRep: deal?.salesRep,
       source: deal?.source
     };
     setActivities([newActivity, ...activities]);

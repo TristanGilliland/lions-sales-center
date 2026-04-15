@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+
 
 const HCP_API_KEY = process.env.HCP_API_KEY;
 const HCP_COMPANY_ID = 'd229639d-85d8-44ff-8831-27aa57333f50';
