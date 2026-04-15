@@ -79,7 +79,6 @@ function mapJobStatusToStage(status) {
   return statusMap[status] || 'Proposals';
 }
 
-export const handler = async (event) => {
   if (event.httpMethod !== 'GET') {
     return { statusCode: 405, body: 'Method not allowed' };
   }
