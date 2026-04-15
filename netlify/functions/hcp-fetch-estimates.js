@@ -2,7 +2,7 @@
 
 const HCP_API_KEY = process.env.HCP_API_KEY;
 const HCP_COMPANY_ID = 'd229639d-85d8-44ff-8831-27aa57333f50';
-const HCP_BASE_URL = 'https://api.housecallpro.com/v2';
+const HCP_BASE_URL = 'https://api.housecallpro.com2';
 
 export const handler = async (event) => {
   if (event.httpMethod !== 'GET') {
@@ -11,7 +11,7 @@ export const handler = async (event) => {
 
   try {
     // Fetch all jobs from HCP
-    const jobsRes = await fetch(`${HCP_BASE_URL}/jobs?company_id=${HCP_COMPANY_ID}&limit=100`, {
+    const jobsRes = await fetch(`${HCP_BASE_URL}/jobs?limit=100`, {
       headers: {
         'Authorization': `Token ${HCP_API_KEY}`,
         'Content-Type': 'application/json'
