@@ -16,10 +16,8 @@ export default function SalesCommandCenter() {
 
   const salesReps = [
     { id: 'tristan', name: 'Tristan (Owner)', role: 'Owner' },
-    { id: 'michael', name: 'Michael', role: 'Sales Rep' },
-    { id: 'rep2', name: 'Sales Rep 2', role: 'Sales Rep' }
+    { id: 'michael', name: 'Michael', role: 'Sales Rep' }
   ];
-
   const technicians = [
     'Ed Pfeiffer', 'Jake Casmay', 'Josh Fazio', 'Greg Janowski', 
     'Scott Deakin', 'Tyler Gilliland', 'Will Egoavil'
