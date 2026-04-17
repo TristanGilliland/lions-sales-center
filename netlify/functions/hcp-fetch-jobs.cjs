@@ -70,6 +70,26 @@ exports.handler = async (event) => {
     const data = await resp.json();
     const jobs = (Array.isArray(data) && data[0]?.result?.jobs) || [];
 
+    // Debug: if no jobs found, include raw response shape for troubleshooting
+    if (jobs.length === 0 && event.queryStringParameters?.debug === '1') {
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobs: [],
+          count: 0,
+          debug: {
+            isArray: Array.isArray(data),
+            length: Array.isArray(data) ? data.length : null,
+            firstItemKeys: Array.isArray(data) && data[0] ? Object.keys(data[0]) : null,
+            firstItemResult: Array.isArray(data) && data[0]?.result
+              ? Object.keys(data[0].result) : null,
+            firstItemPreview: JSON.stringify(data).slice(0, 800),
+          },
+        }),
+      };
+    }
+
     return {
       statusCode: 200,
       headers: {
