@@ -40,56 +40,37 @@ exports.handler = async (event) => {
   const apifyUrl = `https://api.apify.com/v2/acts/flow_logic_automation~flow-logic-automation---hcp-mcp/run-sync-get-dataset-items?token=${APIFY_TOKEN}&timeout=90`;
 
   try {
-    const resp = await fetch(apifyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        hcpApiKey: HCP_API_KEY,
-        companyTimezone: 'America/New_York',
-        operation: 'hcp_get_jobs',
-        args: {
-          scheduled_start_min,
-          scheduled_start_max,
-          page: 1,
-          page_size: 500,
-        },
-      }),
-    });
+    const jobs = [];
+    let page = 1;
+    const MAX_PAGES = 10;
 
-    if (!resp.ok) {
-      const text = await resp.text();
-      return {
-        statusCode: resp.status,
-        body: JSON.stringify({
-          error: `Apify responded ${resp.status}`,
-          detail: text.slice(0, 500),
-        }),
-      };
-    }
-
-    const data = await resp.json();
-    const jobs = (Array.isArray(data) && data[0]?.result?.jobs) || [];
-
-    // Debug: if no jobs found, include raw response shape for troubleshooting
-    if (jobs.length === 0 && event.queryStringParameters?.debug === '1') {
-      return {
-        statusCode: 200,
+    while (page <= MAX_PAGES) {
+      const resp = await fetch(apifyUrl, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          jobs: [],
-          count: 0,
-          debug: {
-            isArray: Array.isArray(data),
-            length: Array.isArray(data) ? data.length : null,
-            firstItemKeys: Array.isArray(data) && data[0] ? Object.keys(data[0]) : null,
-            firstItemResult: Array.isArray(data) && data[0]?.result
-              ? Object.keys(data[0].result) : null,
-            firstItemPreview: JSON.stringify(data).slice(0, 800),
-          },
+          hcpApiKey: HCP_API_KEY,
+          companyTimezone: 'America/New_York',
+          operation: 'hcp_get_jobs',
+          args: { scheduled_start_min, scheduled_start_max, page, page_size: 200 },
         }),
-      };
-    }
+      });
 
+      if (!resp.ok) {
+        const text = await resp.text();
+        return {
+          statusCode: resp.status,
+          body: JSON.stringify({ error: `Apify responded ${resp.status}`, detail: text.slice(0, 500) }),
+        };
+      }
+
+      const data = await resp.json();
+      const batch = (Array.isArray(data) && data[0]?.result?.jobs) || [];
+      jobs.push(...batch);
+      const totalPages = (Array.isArray(data) && data[0]?.result?.total_pages) || 1;
+      if (page >= totalPages || batch.length === 0) break;
+      page++;
+    }
     return {
       statusCode: 200,
       headers: {
