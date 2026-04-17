@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, Phone, MessageSquare, Eye, X, Plus, LogOut, Settings, TrendingUp, Activity, Clock, Award, Download } from 'lucide-react';
-import JobsView from './components/JobsView';
 
 export default function SalesCommandCenter() {
   const [authState, setAuthState] = useState('login');
@@ -287,16 +286,6 @@ const handleLogin = (repId) => {
               >
                 Activity
               </button>
-              <button
-                onClick={() => setViewMode('jobs')}
-                className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors ${
-                  viewMode === 'jobs'
-                    ? 'bg-orange-500 text-white'
-                    : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                Jobs
-              </button>
             </div>
             {installPrompt && (
               <button
@@ -512,12 +501,6 @@ const handleLogin = (repId) => {
       )}
 
       {/* Activity View */}
-      {viewMode === 'jobs' && (
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <JobsView />
-        </div>
-      )}
-
       {viewMode === 'activity' && (
         <div className="p-6">
           <div className="mb-6 flex items-center justify-between">
