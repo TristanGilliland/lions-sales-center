@@ -362,7 +362,23 @@ export default function SalesCommandCenter() {
               {userType === 'tech' ? '🔧 Tech Dashboard' : 'Command Center'}
             </h1>
             <p className="text-sm text-gray-400 mt-1">{currentUser.name}</p>
-          </div>
+          </div><button
+              onClick={() => {
+                localStorage.removeItem('lionsSalesDeals');
+                fetch('/.netlify/functions/hcp-fetch-estimates')
+                  .then(res => res.json())
+                  .then(data => {
+                    if (data.deals) {
+                      setDeals(data.deals);
+                    }
+                  })
+                  .catch(err => console.error('Refresh failed:', err));
+              }}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+            >
+              <TrendingUp size={18} />
+              Refresh
+            </button>
           <div className="flex items-center gap-3">
             <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
               <button
