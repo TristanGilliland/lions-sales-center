@@ -682,7 +682,105 @@ export default function SalesCommandCenter() {
           </div>
         </div>
       )}
+{/* History View */}
+{viewMode === 'history' && userType === 'tech' && (
+  <div className="p-6">
+    <div className="mb-6 flex items-center justify-between">
+      <h2 className="text-xl font-bold text-white flex items-center gap-2">
+        <Award size={24} className="text-orange-500" />
+        Job History
+      </h2>
+    </div>
 
+    <div className="mb-6 flex items-center gap-2">
+      <span className="text-sm text-gray-400">Filter by Tag:</span>
+      <select
+        value={filterTag}
+        onChange={(e) => setFilterTag(e.target.value)}
+        className="bg-gray-900 border border-gray-800 text-white rounded-lg px-3 py-2 text-sm"
+      >
+        <option value="all">All Tags</option>
+        {tags.map(tag => (
+          <option key={tag} value={tag}>{tag}</option>
+        ))}
+      </select>
+    </div>
+
+    <div className="space-y-6">
+      {(() => {
+        const completedJobs = filteredDeals.filter(d => d.sold && d.commissionTech === currentUser.name);
+        
+        if (completedJobs.length === 0) {
+          return (
+            <div className="text-center py-12">
+              <Clock size={48} className="text-gray-700 mx-auto mb-4" />
+              <p className="text-gray-400">No completed jobs yet</p>
+            </div>
+          );
+        }
+
+        // Group by week
+        const jobsByWeek = {};
+        completedJobs.forEach(job => {
+          const date = new Date(job.lastActivity);
+          const weekStart = new Date(date);
+          weekStart.setDate(date.getDate() - date.getDay());
+          const weekKey = weekStart.toISOString().split('T')[0];
+          
+          if (!jobsByWeek[weekKey]) {
+            jobsByWeek[weekKey] = [];
+          }
+          jobsByWeek[weekKey].push(job);
+        });
+
+        return Object.entries(jobsByWeek)
+          .sort(([a], [b]) => new Date(b) - new Date(a))
+          .map(([week, weekJobs]) => (
+            <div key={week} className="bg-gray-900 border border-gray-800 rounded-lg p-6">
+              <h3 className="font-semibold text-white mb-4">Week of {new Date(week).toLocaleDateString()}</h3>
+              
+              <div className="space-y-3">
+                {weekJobs.map(job => (
+                  <div key={job.id} className="bg-gray-800 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-white">{job.customerName}</p>
+                        <p className="text-xs text-gray-500">{job.lastActivity}</p>
+                      </div>
+                      <span className="text-lg font-bold text-green-400">${job.amount.toLocaleString()}</span>
+                    </div>
+                    
+                    <p className="text-sm text-gray-400 mb-3">{job.equipment}</p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap gap-2">
+                        {getDealTags(job).map(tag => (
+                          <span key={tag} className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-gray-500">Commission</p>
+                        <p className="font-bold text-green-400">${calculateCommission(job)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-gray-700 flex justify-between">
+                <span className="text-gray-400">Week Total</span>
+                <span className="font-bold text-green-400">
+                  ${weekJobs.reduce((sum, j) => sum + calculateCommission(j), 0)} commission
+                </span>
+              </div>
+            </div>
+          ));
+      })()}
+    </div>
+  </div>
+)}
       {/* Activity View */}
       {viewMode === 'activity' && (
         <div className="p-6">
