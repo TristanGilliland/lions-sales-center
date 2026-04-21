@@ -25,7 +25,10 @@ exports.handler = async (event) => {
     }
 
     const jobsData = await jobsRes.json();
-    const jobs = jobsData.jobs || [];
+    const jobs = jobsData.jobs || [];const sethJob = jobs.find(j => j.customer?.first_name === 'Seth');
+if (sethJob) {
+  console.log('Seth raw:', JSON.stringify(sethJob, null, 2));
+}
 
     const deals = jobs.map(job => ({
       id: `hcp-${job.id}`,
