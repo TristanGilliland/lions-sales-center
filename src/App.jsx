@@ -722,7 +722,7 @@ export default function SalesCommandCenter() {
 
           <div className="space-y-6">
             {(() => {
-              const completedJobs = filteredDeals.filter(d => d.sold && d.commissionTech === currentUser.name);
+              const completedJobs = filteredDeals.filter(d => d.commissionTech === currentUser.name);
               
               if (completedJobs.length === 0) {
                 return (
