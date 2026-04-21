@@ -410,6 +410,17 @@ export default function SalesCommandCenter() {
                 }`}
 {userType === 'tech' && (
                 <button
+                onClick={() => setViewMode('activity')}
+                className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors ${
+                  viewMode === 'activity'
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Activity
+              </button>
+              {userType === 'tech' && (
+                <button
                   onClick={() => setViewMode('history')}
                   className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors ${
                     viewMode === 'history'
@@ -419,7 +430,7 @@ export default function SalesCommandCenter() {
                 >
                   History
                 </button>
-             }'}
+              )}
               >
                 Activity
               </button>
