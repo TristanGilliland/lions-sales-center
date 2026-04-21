@@ -36,7 +36,7 @@ exports.handler = async (event) => {
       equipment: job.description || 'HVAC Service',
       sold: job.work_status === 'completed',
       equipmentOrdered: false,
-      commissionTech: job.assigned_employees?.[0]?.first_name || 'Unassigned',
+      commissionTech: job.assigned_employees?.[0] ? `${job.assigned_employees[0].first_name} ${job.assigned_employees[0].last_name}` : 'Unassigned',
       estimateViews: 0,
       lastActivity: new Date(job.updated_at).toISOString().split('T')[0],
       source: 'HCP'
