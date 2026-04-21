@@ -423,6 +423,7 @@ export default function SalesCommandCenter() {
               >
                 Activity
               </button>
+              {userType === 'tech' && (
             </div>
             {installPrompt && (
               <button
