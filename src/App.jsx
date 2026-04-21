@@ -419,7 +419,7 @@ export default function SalesCommandCenter() {
                 >
                   History
                 </button>
-              )}
+             }'}
               >
                 Activity
               </button>
