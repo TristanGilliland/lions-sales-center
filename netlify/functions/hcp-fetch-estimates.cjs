@@ -7,26 +7,42 @@ exports.handler = async (event) => {
     const HCP_API_KEY = process.env.HCP_API_KEY;
     const HCP_BASE_URL = 'https://api.housecallpro.com';
     
-    const url = `${HCP_BASE_URL}/jobs?limit=100`;
+    // Fetch active/scheduled jobs
+    const activeUrl = `${HCP_BASE_URL}/jobs?limit=100`;
     
-    const jobsRes = await fetch(url, {
-      headers: {
-        'Authorization': `Token ${HCP_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    // Fetch completed jobs from past 90 days
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const completedUrl = `${HCP_BASE_URL}/jobs?work_status=completed&updated_after=${ninetyDaysAgo.toISOString()}&limit=200`;
+    
+    const headers = {
+      'Authorization': `Token ${HCP_API_KEY}`,
+      'Content-Type': 'application/json'
+    };
 
-    if (!jobsRes.ok) {
+    // Fetch both active and completed jobs
+    const [activeRes, completedRes] = await Promise.all([
+      fetch(activeUrl, { headers }),
+      fetch(completedUrl, { headers })
+    ]);
+
+    if (!activeRes.ok || !completedRes.ok) {
       return {
         statusCode: 500,
         body: JSON.stringify({ error: 'HCP API error' })
       };
     }
 
-    const jobsData = await jobsRes.json();
-    const jobs = jobsData.jobs || [];
+    const activeData = await activeRes.json();
+    const completedData = await completedRes.json();
+    
+    const activeJobs = activeData.jobs || [];
+    const completedJobs = completedData.jobs || [];
+    
+    // Combine both
+    const allJobs = [...activeJobs, ...completedJobs];
 
-    const deals = jobs.map(job => ({
+    const deals = allJobs.map(job => ({
       id: `hcp-${job.id}`,
       customerName: job.customer?.first_name + ' ' + job.customer?.last_name || 'Unknown',
       amount: job.total_amount ? Math.round(job.total_amount / 100) : 0,
