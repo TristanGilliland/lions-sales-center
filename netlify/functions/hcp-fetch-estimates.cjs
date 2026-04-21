@@ -8,7 +8,7 @@ exports.handler = async (event) => {
     const HCP_BASE_URL = 'https://api.housecallpro.com';
     
     // Fetch all jobs (HCP returns up to limit)
-    const url = `${HCP_BASE_URL}/jobs?limit=500`;
+    const url = `${HCP_BASE_URL}/jobs?limit=1000&sort_by=updated_at&sort_direction=desc`;
     
     const jobsRes = await fetch(url, {
       headers: {
