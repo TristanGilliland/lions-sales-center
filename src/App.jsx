@@ -173,11 +173,33 @@ const handleLogin = (id, type) => {
   }
 
   // Dashboard
-  const filteredDeals = deals.filter(deal => {
-    if (filterTag !== 'all' && !getDealTags(deal).includes(filterTag)) return false;
-    if (userType === 'tech') {
-      return deal.commissionTech === currentUser.name || deal.customerName;
-    }
+const loadDeals = async () => {
+  setLoading(true);
+  try {
+    const [hcpRes, completedRes] = await Promise.all([
+      fetch('/.netlify/functions/hcp-fetch-estimates'),
+      fetch('/.netlify/functions/fetch-completed-jobs')
+    ]);
+
+    const hcpData = await hcpRes.json();
+    const completedData = await completedRes.json();
+
+    console.log('HCP deals:', hcpData.deals?.length);
+    console.log('Completed deals:', completedData.deals?.length);
+    console.log('Completed data sample:', completedData.deals?.[0]);
+
+    const allDeals = [
+      ...(hcpData.deals || []),
+      ...(completedData.deals || [])
+    ];
+
+    setDeals(allDeals);
+    localStorage.setItem('lionsSalesDeals', JSON.stringify(allDeals));
+  } catch (err) {
+    console.error('Failed to load deals:', err);
+  }
+  setLoading(false);
+};
     return true;
   });
 
