@@ -1,4 +1,3 @@
-cat > ~/Downloads/lions-sales-center/src/App.jsx << 'ENDAPP'
 import React, { useState, useEffect } from 'react';
 import { Phone, MessageSquare, LogOut, TrendingUp, Award, BarChart3, Zap, CheckCircle, XCircle, Truck } from 'lucide-react';
 
@@ -20,31 +19,19 @@ export default function SalesCommandCenter() {
     { id: 'catherine', name: 'Catherine' }
   ];
 
-  const technicians = [
-    'Ed Pfeiffer', 'Jake Casmay', 'Josh Fazio', 'Greg Janowski',
-    'Scott Deakin', 'Tyler Gilliland', 'Will Egoavil', 'Ethan Harker'
-  ];
-
-  const allStaff = [
-    ...salesReps,
-    ...technicians.map(tech => ({ id: tech, name: tech }))
-  ];
+  const technicians = ['Ed Pfeiffer', 'Jake Casmay', 'Josh Fazio', 'Greg Janowski', 'Scott Deakin', 'Tyler Gilliland', 'Will Egoavil', 'Ethan Harker'];
+  const allStaff = [...salesReps, ...technicians.map(tech => ({ id: tech, name: tech }))];
 
   const loadDeals = async () => {
     setLoading(true);
     try {
-      const [hcpRes, completedRes] = await Promise.all([
-        fetch('/.netlify/functions/hcp-fetch-estimates'),
-        fetch('/.netlify/functions/fetch-completed-jobs')
-      ]);
+      const [hcpRes, completedRes] = await Promise.all([fetch('/.netlify/functions/hcp-fetch-estimates'), fetch('/.netlify/functions/fetch-completed-jobs')]);
       const hcpData = await hcpRes.json();
       const completedData = await completedRes.json();
       const allDeals = [...(hcpData.deals || []), ...(completedData.deals || [])];
       setDeals(allDeals);
       localStorage.setItem('lionsSalesDeals', JSON.stringify(allDeals));
-    } catch (err) {
-      console.error('Failed to load deals:', err);
-    }
+    } catch (err) { console.error('Failed:', err); }
     setLoading(false);
   };
 
@@ -52,20 +39,10 @@ export default function SalesCommandCenter() {
     const savedStatus = localStorage.getItem('lionsDealStatus');
     if (savedStatus) setDealStatus(JSON.parse(savedStatus));
     const saved = localStorage.getItem('lionsSalesDeals');
-    if (saved) {
-      try {
-        setDeals(JSON.parse(saved));
-      } catch (e) {
-        loadDeals();
-      }
-    } else {
-      loadDeals();
-    }
+    if (saved) { try { setDeals(JSON.parse(saved)); } catch (e) { loadDeals(); } } else { loadDeals(); }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('lionsDealStatus', JSON.stringify(dealStatus));
-  }, [dealStatus]);
+  useEffect(() => { localStorage.setItem('lionsDealStatus', JSON.stringify(dealStatus)); }, [dealStatus]);
 
   const getDealTags = (deal) => {
     if (deal.jobTag) return [deal.jobTag];
@@ -79,34 +56,9 @@ export default function SalesCommandCenter() {
     return tags;
   };
 
-  const toggleSold = (dealId) => {
-    setDealStatus(prev => ({ ...prev, [dealId]: { ...prev[dealId], sold: !prev[dealId]?.sold } }));
-  };
-
-  const toggleLost = (dealId) => {
-    setDealStatus(prev => ({ ...prev, [dealId]: { ...prev[dealId], lost: !prev[dealId]?.lost } }));
-  };
-
-  const toggleEquipped = (dealId) => {
-    setDealStatus(prev => ({ ...prev, [dealId]: { ...prev[dealId], equipped: !prev[dealId]?.equipped } }));
-  };
-
-  const setAssignedTech = (dealId, tech) => {
-    setDealStatus(prev => ({ ...prev, [dealId]: { ...prev[dealId], assignedTech: tech } }));
-  };
-
-  const setSalesPerson = (dealId, person) => {
-    setDealStatus(prev => ({ ...prev, [dealId]: { ...prev[dealId], salesPerson: person } }));
-  };
-
   const handleLogin = (id, type) => {
-    if (type === 'rep') {
-      setCurrentUser(salesReps.find(r => r.id === id));
-      setViewMode('pipeline');
-    } else {
-      setCurrentUser({ id, name: id });
-      setViewMode('performance');
-    }
+    if (type === 'rep') { setCurrentUser(salesReps.find(r => r.id === id)); setViewMode('pipeline'); } 
+    else { setCurrentUser({ id, name: id }); setViewMode('performance'); }
     setUserType(type);
     setAuthState('dashboard');
   };
@@ -115,11 +67,6 @@ export default function SalesCommandCenter() {
     setAuthState('login');
     setCurrentUser(null);
     setUserType(null);
-  };
-
-  const handleRefresh = () => {
-    localStorage.removeItem('lionsSalesDeals');
-    loadDeals();
   };
 
   if (authState === 'login') {
@@ -138,21 +85,13 @@ export default function SalesCommandCenter() {
               <div>
                 <h2 className="text-lg font-semibold text-slate-900 mb-3">Sales Reps</h2>
                 <div className="grid grid-cols-2 gap-2">
-                  {salesReps.map(rep => (
-                    <button key={rep.id} onClick={() => handleLogin(rep.id, 'rep')} className="p-3 bg-blue-50 hover:bg-blue-100 border-2 border-blue-300 rounded-lg text-sm font-bold text-blue-900 transition">
-                      {rep.name}
-                    </button>
-                  ))}
+                  {salesReps.map(rep => (<button key={rep.id} onClick={() => handleLogin(rep.id, 'rep')} className="p-3 bg-blue-50 hover:bg-blue-100 border-2 border-blue-300 rounded-lg text-sm font-bold text-blue-900 transition">{rep.name}</button>))}
                 </div>
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-slate-900 mb-3">Technicians</h2>
                 <div className="grid grid-cols-2 gap-2">
-                  {technicians.map(tech => (
-                    <button key={tech} onClick={() => handleLogin(tech, 'tech')} className="p-3 bg-green-50 hover:bg-green-100 border-2 border-green-300 rounded-lg text-sm font-bold text-green-900 transition">
-                      {tech.split(' ')[0]}
-                    </button>
-                  ))}
+                  {technicians.map(tech => (<button key={tech} onClick={() => handleLogin(tech, 'tech')} className="p-3 bg-green-50 hover:bg-green-100 border-2 border-green-300 rounded-lg text-sm font-bold text-green-900 transition">{tech.split(' ')[0]}</button>))}
                 </div>
               </div>
             </div>
@@ -165,54 +104,23 @@ export default function SalesCommandCenter() {
   const DealCard = ({ deal }) => {
     const status = dealStatus[deal.id] || {};
     return (
-      <div className="bg-gradient-to-br from-white to-blue-50 p-4 rounded-lg shadow-md border-2 border-blue-200 hover:shadow-lg transition">
+      <div className="bg-gradient-to-br from-white to-blue-50 p-4 rounded-lg shadow-md border-2 border-blue-200">
         <div className="flex justify-between items-start mb-3">
-          <div>
-            <h3 className="font-bold text-slate-900">{deal.customerName}</h3>
-            <p className="text-sm text-slate-600">{deal.address}</p>
-          </div>
+          <div><h3 className="font-bold text-slate-900">{deal.customerName}</h3><p className="text-sm text-slate-600">{deal.address}</p></div>
           <p className="font-bold text-orange-600 text-lg">${(deal.jobTotalAmount || 0).toLocaleString()}</p>
         </div>
         <div className="flex flex-wrap gap-2 mb-3">
-          {getDealTags(deal).map(tag => (
-            <span key={tag} className="text-xs bg-orange-200 text-orange-900 px-2 py-1 rounded font-bold">{tag}</span>
-          ))}
+          {getDealTags(deal).map(tag => (<span key={tag} className="text-xs bg-orange-200 text-orange-900 px-2 py-1 rounded font-bold">{tag}</span>))}
         </div>
         <div className="space-y-2 border-t-2 border-blue-200 pt-3">
           <div className="flex gap-2">
-            <button onClick={() => toggleSold(deal.id)} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition ${status.sold ? 'bg-green-500 text-white shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
-              <CheckCircle className="w-4 h-4" /> Sold
-            </button>
-            <button onClick={() => toggleLost(deal.id)} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition ${status.lost ? 'bg-red-500 text-white shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
-              <XCircle className="w-4 h-4" /> Lost
-            </button>
+            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], sold: !prev[deal.id]?.sold } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.sold ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}><CheckCircle className="w-4 h-4" /> Sold</button>
+            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], lost: !prev[deal.id]?.lost } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.lost ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}><XCircle className="w-4 h-4" /> Lost</button>
           </div>
-          <button onClick={() => toggleEquipped(deal.id)} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition ${status.equipped ? 'bg-blue-500 text-white shadow-lg' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}>
-            <Truck className="w-4 h-4" /> Equipment Ordered
-          </button>
-          <select value={status.assignedTech || ''} onChange={(e) => setAssignedTech(deal.id, e.target.value)} className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm font-semibold bg-white">
-            <option value="">Assign Tech →</option>
-            {technicians.map(tech => (
-              <option key={tech} value={tech}>{tech}</option>
-            ))}
-          </select>
-          <select value={status.salesPerson || ''} onChange={(e) => setSalesPerson(deal.id, e.target.value)} className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg text-sm font-semibold bg-white">
-            <option value="">Who Made Sale? →</option>
-            {allStaff.map(person => (
-              <option key={person.id} value={person.name}>{person.name}</option>
-            ))}
-          </select>
+          <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], equipped: !prev[deal.id]?.equipped } }))} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.equipped ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}><Truck className="w-4 h-4" /> Equipment Ordered</button>
+          <select value={status.assignedTech || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], assignedTech: e.target.value } }))} className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm font-semibold bg-white"><option value="">Assign Tech →</option>{technicians.map(tech => (<option key={tech} value={tech}>{tech}</option>))}</select>
+          <select value={status.salesPerson || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], salesPerson: e.target.value } }))} className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg text-sm font-semibold bg-white"><option value="">Who Made Sale? →</option>{allStaff.map(person => (<option key={person.id} value={person.name}>{person.name}</option>))}</select>
         </div>
-        {deal.phone && (
-          <div className="flex gap-2 pt-3 border-t-2 border-blue-200">
-            <a href={`tel:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-bold">
-              <Phone className="w-4 h-4" /> Call
-            </a>
-            <a href={`sms:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-green-600 hover:text-green-700 font-bold">
-              <MessageSquare className="w-4 h-4" /> SMS
-            </a>
-          </div>
-        )}
       </div>
     );
   };
@@ -232,35 +140,17 @@ export default function SalesCommandCenter() {
       <div className="min-h-screen bg-gradient-to-b from-slate-100 to-blue-50">
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-b-4 border-orange-500 sticky top-0 z-40 shadow-lg">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Sales Pipeline</h1>
-              <p className="text-orange-300 font-semibold">{currentUser?.name}</p>
-            </div>
+            <div><h1 className="text-3xl font-bold text-white">Sales Pipeline</h1><p className="text-orange-300 font-semibold">{currentUser?.name}</p></div>
             <div className="flex gap-2">
-              <button onClick={handleRefresh} className="p-2 hover:bg-slate-700 rounded-lg transition">
-                <Zap className="w-5 h-5 text-orange-400" />
-              </button>
-              <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
-                <LogOut className="w-4 h-4" /> Logout
-              </button>
+              <button onClick={() => { localStorage.removeItem('lionsSalesDeals'); loadDeals(); }} className="p-2 hover:bg-slate-700 rounded-lg"><Zap className="w-5 h-5 text-orange-400" /></button>
+              <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold"><LogOut className="w-4 h-4" /> Logout</button>
             </div>
           </div>
-          <div className="max-w-7xl mx-auto px-4 py-2 flex gap-2 border-t border-slate-700 overflow-x-auto">
-            {['open', 'equipped', 'sold', 'lost'].map(view => (
-              <button key={view} onClick={() => setPipelineView(view)} className={`px-4 py-2 rounded-lg font-bold whitespace-nowrap transition ${pipelineView === view ? 'bg-orange-500 text-white shadow-lg' : 'text-white hover:bg-slate-700'}`}>
-                {view === 'open' ? 'Open' : view === 'equipped' ? 'Equipment Ordered' : view === 'sold' ? 'Sold' : 'Lost'}
-              </button>
-            ))}
+          <div className="max-w-7xl mx-auto px-4 py-2 flex gap-2 border-t border-slate-700">
+            {['open', 'equipped', 'sold', 'lost'].map(view => (<button key={view} onClick={() => setPipelineView(view)} className={`px-4 py-2 rounded-lg font-bold whitespace-nowrap ${pipelineView === view ? 'bg-orange-500 text-white' : 'text-white hover:bg-slate-700'}`}>{view === 'open' ? 'Open' : view === 'equipped' ? 'Equipment Ordered' : view === 'sold' ? 'Sold' : 'Lost'}</button>))}
           </div>
           <div className="max-w-7xl mx-auto px-4 py-3 border-t border-slate-700">
-            <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-3 py-2 border-2 border-orange-500 rounded-lg text-sm font-bold bg-white">
-              <option value="all">All Tags</option>
-              <option value="Sales">Sales</option>
-              <option value="Service">Service</option>
-              <option value="Install">Install</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Callbacks">Callbacks</option>
-            </select>
+            <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-3 py-2 border-2 border-orange-500 rounded-lg text-sm font-bold bg-white"><option value="all">All Tags</option><option value="Sales">Sales</option><option value="Service">Service</option><option value="Install">Install</option><option value="Maintenance">Maintenance</option><option value="Callbacks">Callbacks</option></select>
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -279,9 +169,7 @@ export default function SalesCommandCenter() {
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-b-4 border-orange-500 sticky top-0 z-40 shadow-lg">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-white">{currentUser?.name}</h1>
-            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
-              <LogOut className="w-4 h-4" /> Logout
-            </button>
+            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold"><LogOut className="w-4 h-4" /> Logout</button>
           </div>
           <div className="max-w-7xl mx-auto px-4 py-2 flex gap-2 border-t border-slate-700">
             <button onClick={() => setViewMode('performance')} className="px-4 py-2 rounded-lg font-bold bg-orange-500 text-white">My Stats</button>
@@ -290,21 +178,9 @@ export default function SalesCommandCenter() {
         </div>
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-orange-100 to-orange-200 p-6 rounded-lg shadow-lg border-2 border-orange-400">
-              <p className="text-orange-800 text-sm font-bold">Commission</p>
-              <p className="text-4xl font-bold text-orange-900">${totalRevenue.toLocaleString()}</p>
-              <Award className="w-8 h-8 text-orange-600 mt-2" />
-            </div>
-            <div className="bg-gradient-to-br from-green-100 to-green-200 p-6 rounded-lg shadow-lg border-2 border-green-400">
-              <p className="text-green-800 text-sm font-bold">Jobs Completed</p>
-              <p className="text-4xl font-bold text-green-900">{jobCount}</p>
-              <TrendingUp className="w-8 h-8 text-green-600 mt-2" />
-            </div>
-            <div className="bg-gradient-to-br from-blue-100 to-blue-200 p-6 rounded-lg shadow-lg border-2 border-blue-400">
-              <p className="text-blue-800 text-sm font-bold">Avg Commission</p>
-              <p className="text-4xl font-bold text-blue-900">${jobCount > 0 ? Math.round(totalRevenue / jobCount).toLocaleString() : 0}</p>
-              <BarChart3 className="w-8 h-8 text-blue-600 mt-2" />
-            </div>
+            <div className="bg-gradient-to-br from-orange-100 to-orange-200 p-6 rounded-lg shadow-lg border-2 border-orange-400"><p className="text-orange-800 text-sm font-bold">Commission</p><p className="text-4xl font-bold text-orange-900">${totalRevenue.toLocaleString()}</p><Award className="w-8 h-8 text-orange-600 mt-2" /></div>
+            <div className="bg-gradient-to-br from-green-100 to-green-200 p-6 rounded-lg shadow-lg border-2 border-green-400"><p className="text-green-800 text-sm font-bold">Jobs Completed</p><p className="text-4xl font-bold text-green-900">{jobCount}</p><TrendingUp className="w-8 h-8 text-green-600 mt-2" /></div>
+            <div className="bg-gradient-to-br from-blue-100 to-blue-200 p-6 rounded-lg shadow-lg border-2 border-blue-400"><p className="text-blue-800 text-sm font-bold">Avg Commission</p><p className="text-4xl font-bold text-blue-900">${jobCount > 0 ? Math.round(totalRevenue / jobCount).toLocaleString() : 0}</p><BarChart3 className="w-8 h-8 text-blue-600 mt-2" /></div>
           </div>
         </div>
       </div>
@@ -327,9 +203,7 @@ export default function SalesCommandCenter() {
         <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-b-4 border-orange-500 sticky top-0 z-40 shadow-lg">
           <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
             <h1 className="text-3xl font-bold text-white">{currentUser?.name} - History</h1>
-            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition">
-              <LogOut className="w-4 h-4" /> Logout
-            </button>
+            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold"><LogOut className="w-4 h-4" /> Logout</button>
           </div>
           <div className="max-w-7xl mx-auto px-4 py-2 flex gap-2 border-t border-slate-700">
             <button onClick={() => setViewMode('performance')} className="px-4 py-2 rounded-lg font-bold text-white hover:bg-slate-700">My Stats</button>
@@ -342,14 +216,8 @@ export default function SalesCommandCenter() {
               <h2 className="text-lg font-bold text-slate-900 mb-3 bg-orange-200 px-3 py-2 rounded-lg">{month}</h2>
               <div className="space-y-2">
                 {groupedByMonth[month].map(deal => (
-                  <div key={deal.id} className="bg-gradient-to-r from-white to-green-50 p-4 rounded-lg border-2 border-green-300 shadow-sm">
-                    <div className="flex justify-between">
-                      <div>
-                        <p className="font-bold text-slate-900">{deal.customerName}</p>
-                        <p className="text-sm text-slate-600">{deal.completedDate}</p>
-                      </div>
-                      <p className="font-bold text-orange-600 text-lg">${(deal.commissionAmount || 0).toLocaleString()}</p>
-                    </div>
+                  <div key={deal.id} className="bg-gradient-to-r from-white to-green-50 p-4 rounded-lg border-2 border-green-300">
+                    <div className="flex justify-between"><div><p className="font-bold text-slate-900">{deal.customerName}</p><p className="text-sm text-slate-600">{deal.completedDate}</p></div><p className="font-bold text-orange-600 text-lg">${(deal.commissionAmount || 0).toLocaleString()}</p></div>
                   </div>
                 ))}
               </div>
@@ -362,4 +230,3 @@ export default function SalesCommandCenter() {
 
   return null;
 }
-ENDAPP
