@@ -51,7 +51,6 @@ export default function SalesCommandCenter() {
     if (desc.includes('service')) tags.push('Service');
     if (desc.includes('install')) tags.push('Install');
     if (desc.includes('maintenance')) tags.push('Maintenance');
-    if (desc.includes('callback')) tags.push('Callbacks');
     if (!tags.length) tags.push('Sales');
     return tags;
   };
@@ -116,67 +115,41 @@ export default function SalesCommandCenter() {
           <p className="font-bold text-orange-600 text-lg">${displayPrice.toLocaleString()}</p>
         </div>
         
-        {/* Customer Contact Info */}
         <div className="bg-blue-100 p-3 rounded-lg mb-3 space-y-1 text-sm">
-          {deal.address && (
-            <div className="flex items-start gap-2">
-              <MapPin className="w-4 h-4 text-blue-700 mt-0.5 flex-shrink-0" />
-              <p className="text-slate-700">{deal.address}</p>
-            </div>
-          )}
-          {deal.phone && (
-            <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-blue-700 flex-shrink-0" />
-              <p className="text-slate-700">{deal.phone}</p>
-            </div>
-          )}
-          {deal.email && (
-            <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-blue-700 flex-shrink-0" />
-              <p className="text-slate-700 break-all">{deal.email}</p>
-            </div>
-          )}
+          {deal.address && (<div className="flex items-start gap-2"><MapPin className="w-4 h-4 text-blue-700 mt-0.5 flex-shrink-0" /><p className="text-slate-900">{deal.address}</p></div>)}
+          {deal.phone && (<div className="flex items-center gap-2"><Phone className="w-4 h-4 text-blue-700 flex-shrink-0" /><p className="text-slate-900">{deal.phone}</p></div>)}
+          {deal.email && (<div className="flex items-center gap-2"><Mail className="w-4 h-4 text-blue-700 flex-shrink-0" /><p className="text-slate-900 break-all">{deal.email}</p></div>)}
         </div>
 
-        {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-3">
           {getDealTags(deal).map(tag => (<span key={tag} className="text-xs bg-orange-200 text-orange-900 px-2 py-1 rounded font-bold">{tag}</span>))}
         </div>
 
-        {/* Contact Buttons */}
         <div className="flex gap-2 mb-3 border-t-2 border-blue-200 pt-3">
-          {deal.phone && (
-            <>
-              <a href={`tel:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-white font-bold bg-blue-600 hover:bg-blue-700 rounded-lg py-2">
-                <Phone className="w-4 h-4" /> Call
-              </a>
-              <a href={`sms:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-white font-bold bg-green-600 hover:bg-green-700 rounded-lg py-2">
-                <MessageSquare className="w-4 h-4" /> Text
-              </a>
-            </>
-          )}
+          {deal.phone && (<>
+            <a href={`tel:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-white font-bold bg-blue-600 hover:bg-blue-700 rounded-lg py-2"><Phone className="w-4 h-4" /> Call</a>
+            <a href={`sms:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-white font-bold bg-green-600 hover:bg-green-700 rounded-lg py-2"><MessageSquare className="w-4 h-4" /> Text</a>
+          </>)}
         </div>
 
-        {/* Edit Price */}
         <div className="flex gap-2 mb-3 border-t-2 border-blue-200 pt-3">
-          <input 
-            type="number" 
-            value={displayPrice}
-            onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], customPrice: parseFloat(e.target.value) || 0 } }))}
-            className="flex-1 px-3 py-2 border-2 border-orange-300 rounded-lg text-sm font-bold bg-white"
-            placeholder="Price"
-          />
+          <input type="number" value={displayPrice} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], customPrice: parseFloat(e.target.value) || 0 } }))} className="flex-1 px-3 py-2 border-2 border-orange-300 rounded-lg text-sm font-bold bg-white text-slate-900" placeholder="Price" />
         </div>
 
-        {/* Deal Controls */}
         <div className="space-y-2 border-t-2 border-blue-200 pt-3">
           <div className="flex gap-2">
-            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], sold: !prev[deal.id]?.sold } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.sold ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}><CheckCircle className="w-4 h-4" /> Sold</button>
-            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], lost: !prev[deal.id]?.lost } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.lost ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}><XCircle className="w-4 h-4" /> Lost</button>
+            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], sold: !prev[deal.id]?.sold } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.sold ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-900 hover:bg-slate-300'}`}><CheckCircle className="w-4 h-4" /> Sold</button>
+            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], lost: !prev[deal.id]?.lost } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.lost ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-900 hover:bg-slate-300'}`}><XCircle className="w-4 h-4" /> Lost</button>
           </div>
-          <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], equipped: !prev[deal.id]?.equipped } }))} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.equipped ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}><Truck className="w-4 h-4" /> Equipment Ordered</button>
-<select value={status.assignedTech || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], assignedTech: e.target.value } }))} className="w-full px-3 py-2 border-2 border-slate-400 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="">Assign Tech →</option>{technicians.map(tech => (<option key={tech} value={tech}>{tech}</option>))}</select>
-<select value={status.salesPerson || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], salesPerson: e.target.value } }))} className="w-full px-3 py-2 border-2 border-orange-400 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="">Who Made Sale? →</option>{allStaff.map(person => (<option key={person.id} value={person.name}>{person.name}</option>))}</select>
+          <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], equipped: !prev[deal.id]?.equipped } }))} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.equipped ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-900 hover:bg-slate-300'}`}><Truck className="w-4 h-4" /> Equipment Ordered</button>
+          <select value={status.assignedTech || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], assignedTech: e.target.value } }))} className="w-full px-3 py-2 border-2 border-slate-400 rounded-lg text-sm font-semibold bg-white text-slate-900">
+            <option value="">Assign Tech →</option>
+            {technicians.map(tech => (<option key={tech} value={tech}>{tech}</option>))}
+          </select>
+          <select value={status.salesPerson || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], salesPerson: e.target.value } }))} className="w-full px-3 py-2 border-2 border-orange-400 rounded-lg text-sm font-semibold bg-white text-slate-900">
+            <option value="">Who Made Sale? →</option>
+            {allStaff.map(person => (<option key={person.id} value={person.name}>{person.name}</option>))}
+          </select>
         </div>
       </div>
     );
@@ -207,8 +180,14 @@ export default function SalesCommandCenter() {
             {['open', 'equipped', 'sold', 'lost'].map(view => (<button key={view} onClick={() => setPipelineView(view)} className={`px-4 py-2 rounded-lg font-bold whitespace-nowrap ${pipelineView === view ? 'bg-orange-500 text-white' : 'text-white hover:bg-slate-700'}`}>{view === 'open' ? 'Open' : view === 'equipped' ? 'Equipment Ordered' : view === 'sold' ? 'Sold' : 'Lost'}</button>))}
           </div>
           <div className="max-w-7xl mx-auto px-4 py-3 border-t border-slate-700">
+            <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-3 py-2 border-2 border-orange-500 rounded-lg text-sm font-bold bg-white text-slate-900">
+              <option value="all">All Tags</option>
+              <option value="Sales">Sales</option>
+              <option value="Service">Service</option>
+              <option value="Install">Install</option>
+              <option value="Maintenance">Maintenance</option>
+            </select>
           </div>
-<select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-3 py-2 border-2 border-orange-500 rounded-lg text-sm font-bold bg-white text-slate-900"><option value="all">All Tags</option>...
         </div>
         <div className="max-w-7xl mx-auto px-4 py-6">
           {loading ? <p className="text-center py-12 text-slate-600 font-bold">Loading...</p> : filteredDeals.length === 0 ? <p className="text-center py-8 text-slate-600 font-bold">No deals</p> : <div className="grid gap-4">{filteredDeals.map(deal => <DealCard key={deal.id} deal={deal} />)}</div>}
@@ -268,18 +247,7 @@ export default function SalesCommandCenter() {
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 py-6">
-          {sortedMonths.length === 0 ? <p className="text-center py-8 text-slate-600 font-bold">No jobs</p> : sortedMonths.map(month => (
-            <div key={month} className="mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-3 bg-orange-200 px-3 py-2 rounded-lg">{month}</h2>
-              <div className="space-y-2">
-                {groupedByMonth[month].map(deal => (
-                  <div key={deal.id} className="bg-gradient-to-r from-white to-green-50 p-4 rounded-lg border-2 border-green-300">
-                    <div className="flex justify-between"><div><p className="font-bold text-slate-900">{deal.customerName}</p><p className="text-sm text-slate-600">{deal.completedDate}</p></div><p className="font-bold text-orange-600 text-lg">${(deal.commissionAmount || 0).toLocaleString()}</p></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+          {sortedMonths.length === 0 ? <p className="text-center py-8 text-slate-600 font-bold">No jobs</p> : sortedMonths.map(month => (<div key={month} className="mb-6"><h2 className="text-lg font-bold text-slate-900 mb-3 bg-orange-200 px-3 py-2 rounded-lg">{month}</h2><div className="space-y-2">{groupedByMonth[month].map(deal => (<div key={deal.id} className="bg-gradient-to-r from-white to-green-50 p-4 rounded-lg border-2 border-green-300"><div className="flex justify-between"><div><p className="font-bold text-slate-900">{deal.customerName}</p><p className="text-sm text-slate-600">{deal.completedDate}</p></div><p className="font-bold text-orange-600 text-lg">${(deal.commissionAmount || 0).toLocaleString()}</p></div></div>))}</div></div>))}
         </div>
       </div>
     );
