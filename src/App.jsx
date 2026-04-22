@@ -733,25 +733,23 @@ export default function SalesCommandCenter() {
                 );
               }
 
-              // Group by week
-              const jobsByWeek = {};
-              completedJobs.forEach(job => {
-                const date = new Date(job.lastActivity);
-                const weekStart = new Date(date);
-                weekStart.setDate(date.getDate() - date.getDay());
-                const weekKey = weekStart.toISOString().split('T')[0];
-                
-                if (!jobsByWeek[weekKey]) {
-                  jobsByWeek[weekKey] = [];
-                }
-                jobsByWeek[weekKey].push(job);
-              });
+              // Group by month
+const jobsByMonth = {};
+completedJobs.forEach(job => {
+  const date = new Date(job.lastActivity);
+  const monthKey = date.toISOString().slice(0, 7); // "2026-04"
+  
+  if (!jobsByMonth[monthKey]) {
+    jobsByMonth[monthKey] = [];
+  }
+  jobsByMonth[monthKey].push(job);
+});
 
-              return Object.entries(jobsByWeek)
+              return Object.entries(jobsByMonth)
                 .sort(([a], [b]) => new Date(b) - new Date(a))
                 .map(([week, weekJobs]) => (
                   <div key={week} className="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                    <h3 className="font-semibold text-white mb-4">Week of {new Date(week).toLocaleDateString()}</h3>
+                    <h3 className="font-semibold text-white mb-4">Month of {new Date(month + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</h3>
                     
                     <div className="space-y-3">
                       {weekJobs.map(job => (
