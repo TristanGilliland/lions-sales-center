@@ -7,12 +7,13 @@ exports.handler = async (event) => {
     const SHEET_ID = '1Tk4o7S0ql4-FOeGKnMpqac3P_QuuuYITeoeoR-THywM';
     
     // Fetch Google Sheet as CSV
-    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
+    const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
     
     const res = await fetch(csvUrl);
     
     if (!res.ok) {
-      return { statusCode: 500, body: JSON.stringify({ error: 'Failed to fetch sheet' }) };
+      console.error('Sheet fetch failed:', res.status, res.statusText);
+      return { statusCode: 500, body: JSON.stringify({ error: `Sheet fetch failed: ${res.status}` }) };
     }
 
     const csv = await res.text();
@@ -22,31 +23,36 @@ exports.handler = async (event) => {
       return { statusCode: 200, body: JSON.stringify({ deals: [] }) };
     }
 
-    // Parse headers
-    const headers = lines[0].split(',').map(h => h.trim());
-    
     // Parse rows
     const deals = [];
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim());
+      const line = lines[i].trim();
+      if (!line) continue;
       
+      const values = line.split(',').map(v => v.trim());
+      
+      if (values.length < 8) continue; // Skip incomplete rows
+
       const deal = {
         id: `completed-${i}`,
-        customerName: values[0] || '',
+        customerName: values[0] || 'Unknown',
         completedDate: values[1] || '',
         address: values[2] || '',
         phone: values[3] || '',
         email: values[4] || '',
         jobTotalAmount: parseFloat(values[5]) || 0,
         commissionAmount: parseFloat(values[6]) || 0,
-        jobTag: values[7] || '',
-        sold: true, // All rows in this sheet are completed jobs
+        jobTag: values[7] || 'Completed',
+        sold: true,
         stage: 'Sold',
-        source: 'Completed'
+        source: 'Completed',
+        commissionTech: values[0] ? values[0].split(' ').slice(0, -1).join(' ') : 'Unknown' // Extract tech name
       };
       
       deals.push(deal);
     }
+
+    console.log(`Parsed ${deals.length} completed jobs from sheet`);
 
     return {
       statusCode: 200,
