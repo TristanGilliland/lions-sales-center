@@ -42,22 +42,28 @@ export default function SalesCommandCenter() {
   }, []);
 
   // Load deals
-  useEffect(() => {
-    const saved = localStorage.getItem('lionsSalesDeals');
-    if (saved) {
-      setDeals(JSON.parse(saved));
-    } else {
-      fetch('/.netlify/functions/hcp-fetch-estimates')
-        .then(res => res.json())
-        .then(data => {
-          if (data.deals) {
-            setDeals(data.deals);
-          }
-        })
-        .catch(err => {
-          console.error('Failed to load HCP deals:', err);
-          setDeals([]);
-        });
+useEffect(() => {
+  const saved = localStorage.getItem('lionsSalesDeals');
+  if (saved) {
+    setDeals(JSON.parse(saved));
+  } else {
+    Promise.all([
+      fetch('/.netlify/functions/hcp-fetch-estimates').then(r => r.json()),
+      fetch('/.netlify/functions/fetch-completed-jobs').then(r => r.json())
+    ])
+      .then(([hcpData, completedData]) => {
+        const allDeals = [
+          ...(hcpData.deals || []),
+          ...(completedData.deals || [])
+        ];
+        setDeals(allDeals);
+      })
+      .catch(err => {
+        console.error('Failed to load deals:', err);
+        setDeals([]);
+      });
+  }
+}, []);
     }
 
     const savedActivities = localStorage.getItem('lionsSalesActivities');
