@@ -4,7 +4,7 @@ exports.handler = async (event) => {
   }
 
   try {
-    const SHEET_ID = '1Tk4o7S0ql4-FOeGKnMpqac3P_QuuuYITeoeoR-THywM';
+const SHEET_ID = '1uW5mVJwX7X6cYUclC2QBKMNQJh1yOND65JxLY-2MKqk';
     
     // Fetch Google Sheet as CSV
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
