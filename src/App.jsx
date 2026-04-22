@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, MessageSquare, LogOut, TrendingUp, Award, BarChart3, Zap, CheckCircle, XCircle, Truck } from 'lucide-react';
+import { Phone, MessageSquare, LogOut, TrendingUp, Award, BarChart3, Zap, CheckCircle, XCircle, Truck, Mail, MapPin } from 'lucide-react';
 
 export default function SalesCommandCenter() {
   const [authState, setAuthState] = useState('login');
@@ -69,6 +69,10 @@ export default function SalesCommandCenter() {
     setUserType(null);
   };
 
+  const getDisplayPrice = (deal, status) => {
+    return status.customPrice !== undefined ? status.customPrice : (deal.jobTotalAmount || 0);
+  };
+
   if (authState === 'login') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-orange-900 flex items-center justify-center p-4">
@@ -103,15 +107,68 @@ export default function SalesCommandCenter() {
 
   const DealCard = ({ deal }) => {
     const status = dealStatus[deal.id] || {};
+    const displayPrice = getDisplayPrice(deal, status);
+    
     return (
       <div className="bg-gradient-to-br from-white to-blue-50 p-4 rounded-lg shadow-md border-2 border-blue-200">
         <div className="flex justify-between items-start mb-3">
-          <div><h3 className="font-bold text-slate-900">{deal.customerName}</h3><p className="text-sm text-slate-600">{deal.address}</p></div>
-          <p className="font-bold text-orange-600 text-lg">${(deal.jobTotalAmount || 0).toLocaleString()}</p>
+          <div><h3 className="font-bold text-slate-900">{deal.customerName}</h3></div>
+          <p className="font-bold text-orange-600 text-lg">${displayPrice.toLocaleString()}</p>
         </div>
+        
+        {/* Customer Contact Info */}
+        <div className="bg-blue-100 p-3 rounded-lg mb-3 space-y-1 text-sm">
+          {deal.address && (
+            <div className="flex items-start gap-2">
+              <MapPin className="w-4 h-4 text-blue-700 mt-0.5 flex-shrink-0" />
+              <p className="text-slate-700">{deal.address}</p>
+            </div>
+          )}
+          {deal.phone && (
+            <div className="flex items-center gap-2">
+              <Phone className="w-4 h-4 text-blue-700 flex-shrink-0" />
+              <p className="text-slate-700">{deal.phone}</p>
+            </div>
+          )}
+          {deal.email && (
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-blue-700 flex-shrink-0" />
+              <p className="text-slate-700 break-all">{deal.email}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Tags */}
         <div className="flex flex-wrap gap-2 mb-3">
           {getDealTags(deal).map(tag => (<span key={tag} className="text-xs bg-orange-200 text-orange-900 px-2 py-1 rounded font-bold">{tag}</span>))}
         </div>
+
+        {/* Contact Buttons */}
+        <div className="flex gap-2 mb-3 border-t-2 border-blue-200 pt-3">
+          {deal.phone && (
+            <>
+              <a href={`tel:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-white font-bold bg-blue-600 hover:bg-blue-700 rounded-lg py-2">
+                <Phone className="w-4 h-4" /> Call
+              </a>
+              <a href={`sms:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-white font-bold bg-green-600 hover:bg-green-700 rounded-lg py-2">
+                <MessageSquare className="w-4 h-4" /> Text
+              </a>
+            </>
+          )}
+        </div>
+
+        {/* Edit Price */}
+        <div className="flex gap-2 mb-3 border-t-2 border-blue-200 pt-3">
+          <input 
+            type="number" 
+            value={displayPrice}
+            onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], customPrice: parseFloat(e.target.value) || 0 } }))}
+            className="flex-1 px-3 py-2 border-2 border-orange-300 rounded-lg text-sm font-bold bg-white"
+            placeholder="Price"
+          />
+        </div>
+
+        {/* Deal Controls */}
         <div className="space-y-2 border-t-2 border-blue-200 pt-3">
           <div className="flex gap-2">
             <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], sold: !prev[deal.id]?.sold } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.sold ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}><CheckCircle className="w-4 h-4" /> Sold</button>
