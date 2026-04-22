@@ -33,22 +33,28 @@ const SHEET_ID = '1uW5mVJwX7X6cYUclC2QBKMNQJh1yOND65JxLY-2MKqk';
       
       if (values.length < 8) continue; // Skip incomplete rows
 
-      const deal = {
-        id: `completed-${i}`,
-        customerName: values[0] || 'Unknown',
-        completedDate: values[1] || '',
-        address: values[2] || '',
-        phone: values[3] || '',
-        email: values[4] || '',
-        jobTotalAmount: parseFloat(values[5]) || 0,
-        commissionAmount: parseFloat(values[6]) || 0,
-        jobTag: values[7] || 'Completed',
-        sold: true,
-        stage: 'Sold',
-        source: 'Completed',
-        commissionTech: values[0] ? values[0].split(' ').slice(0, -1).join(' ') : 'Unknown' // Extract tech name
-      };
-      
+const deals = [];
+for (let i = 1; i < lines.length; i++) {
+  const line = lines[i].trim();
+  if (!line) continue;
+  
+  const values = line.split(',');
+  
+  const deal = {
+    id: values[1]?.trim() || `completed-${i}`,
+    customerName: values[0]?.trim() || 'Unknown',
+    completedDate: values[2]?.trim() || '',
+    jobTotalAmount: parseFloat(values[4]) || 0,
+    commissionAmount: parseFloat(values[5]) || 0,
+    jobTag: values[6]?.trim() || 'Completed',
+    commissionTech: values[3]?.trim() || 'Unknown',
+    sold: true,
+    stage: 'Sold',
+    source: 'Completed'
+  };
+  
+  deals.push(deal);
+}      
       deals.push(deal);
     }
 
