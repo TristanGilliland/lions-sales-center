@@ -96,16 +96,17 @@ export default function SalesCommandCenter() {
     return 0;
   };
 
-  const handleLogin = (id, type) => {
-    if (type === 'rep') {
-      setCurrentUser(salesReps.find(r => r.id === id));
-    } else {
-      setCurrentUser({ id, name: id });
-    }
-    setUserType(type);
-    setAuthState('dashboard');
-  };
-
+const handleLogin = (id, type) => {
+  if (type === 'rep') {
+    setCurrentUser(salesReps.find(r => r.id === id));
+    setViewMode('pipeline');
+  } else {
+    setCurrentUser({ id, name: id });
+    setViewMode('performance'); // Set to performance for techs
+  }
+  setUserType(type);
+  setAuthState('dashboard');
+};
   const handleLogout = () => {
     setAuthState('login');
     setCurrentUser(null);
