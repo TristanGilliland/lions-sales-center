@@ -175,8 +175,8 @@ export default function SalesCommandCenter() {
             <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], lost: !prev[deal.id]?.lost } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.lost ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}><XCircle className="w-4 h-4" /> Lost</button>
           </div>
           <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], equipped: !prev[deal.id]?.equipped } }))} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.equipped ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}><Truck className="w-4 h-4" /> Equipment Ordered</button>
-          <select value={status.assignedTech || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], assignedTech: e.target.value } }))} className="w-full px-3 py-2 border-2 border-slate-300 rounded-lg text-sm font-semibold bg-white"><option value="">Assign Tech →</option>{technicians.map(tech => (<option key={tech} value={tech}>{tech}</option>))}</select>
-          <select value={status.salesPerson || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], salesPerson: e.target.value } }))} className="w-full px-3 py-2 border-2 border-orange-300 rounded-lg text-sm font-semibold bg-white"><option value="">Who Made Sale? →</option>{allStaff.map(person => (<option key={person.id} value={person.name}>{person.name}</option>))}</select>
+<select value={status.assignedTech || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], assignedTech: e.target.value } }))} className="w-full px-3 py-2 border-2 border-slate-400 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="">Assign Tech →</option>{technicians.map(tech => (<option key={tech} value={tech}>{tech}</option>))}</select>
+<select value={status.salesPerson || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], salesPerson: e.target.value } }))} className="w-full px-3 py-2 border-2 border-orange-400 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="">Who Made Sale? →</option>{allStaff.map(person => (<option key={person.id} value={person.name}>{person.name}</option>))}</select>
         </div>
       </div>
     );
@@ -207,8 +207,8 @@ export default function SalesCommandCenter() {
             {['open', 'equipped', 'sold', 'lost'].map(view => (<button key={view} onClick={() => setPipelineView(view)} className={`px-4 py-2 rounded-lg font-bold whitespace-nowrap ${pipelineView === view ? 'bg-orange-500 text-white' : 'text-white hover:bg-slate-700'}`}>{view === 'open' ? 'Open' : view === 'equipped' ? 'Equipment Ordered' : view === 'sold' ? 'Sold' : 'Lost'}</button>))}
           </div>
           <div className="max-w-7xl mx-auto px-4 py-3 border-t border-slate-700">
-            <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-3 py-2 border-2 border-orange-500 rounded-lg text-sm font-bold bg-white"><option value="all">All Tags</option><option value="Sales">Sales</option><option value="Service">Service</option><option value="Install">Install</option><option value="Maintenance">Maintenance</option><option value="Callbacks">Callbacks</option></select>
           </div>
+<select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-3 py-2 border-2 border-orange-500 rounded-lg text-sm font-bold bg-white text-slate-900"><option value="all">All Tags</option>...
         </div>
         <div className="max-w-7xl mx-auto px-4 py-6">
           {loading ? <p className="text-center py-12 text-slate-600 font-bold">Loading...</p> : filteredDeals.length === 0 ? <p className="text-center py-8 text-slate-600 font-bold">No deals</p> : <div className="grid gap-4">{filteredDeals.map(deal => <DealCard key={deal.id} deal={deal} />)}</div>}
