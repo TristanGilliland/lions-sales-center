@@ -5,25 +5,21 @@ exports.handler = async (event) => {
     
     const res = await fetch(csvUrl);
     if (!res.ok) {
-      console.error('Sheet fetch failed:', res.status);
       return { statusCode: 500, body: JSON.stringify({ error: `Failed: ${res.status}` }) };
     }
 
     const csv = await res.text();
-    console.log('CSV first 1000 chars:', csv.substring(0, 1000));
-    
     const lines = csv.trim().split('\n');
-    console.log('Total lines:', lines.length);
-    console.log('Header:', lines[0]);
-    if (lines[1]) console.log('Row 1:', lines[1]);
 
     const deals = [];
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
       
-      const values = line.split(',').map(v => v.trim());
-      console.log(`Row ${i} values:`, values);
+      // Parse CSV: remove quotes and split by comma
+      const values = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+      
+      if (values.length < 7) continue;
       
       const deal = {
         id: values[1] || `completed-${i}`,
@@ -41,11 +37,9 @@ exports.handler = async (event) => {
       deals.push(deal);
     }
 
-    console.log(`Parsed ${deals.length} deals`);
     return { statusCode: 200, body: JSON.stringify({ deals }) };
     
   } catch (error) {
-    console.error('Error:', error.message);
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
 };
