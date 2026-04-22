@@ -12,25 +12,17 @@ exports.handler = async (event) => {
       'Content-Type': 'application/json'
     };
 
-    // Fetch active jobs (scheduled, in_progress)
-    const activeUrl = `${HCP_BASE_URL}/jobs?limit=500&work_status=scheduled,in_progress`;
+    // Fetch all jobs (no status filter)
+    const url = `${HCP_BASE_URL}/jobs?limit=1000`;
     
-    // Fetch finished jobs
-    const finishedUrl = `${HCP_BASE_URL}/jobs?limit=500&work_status=finished`;
-    
-    const [activeRes, finishedRes] = await Promise.all([
-      fetch(activeUrl, { headers }),
-      fetch(finishedUrl, { headers })
-    ]);
+    const jobsRes = await fetch(url, { headers });
 
-    if (!activeRes.ok || !finishedRes.ok) {
+    if (!jobsRes.ok) {
       return { statusCode: 500, body: JSON.stringify({ error: 'HCP API error' }) };
     }
 
-    const activeData = await activeRes.json();
-    const finishedData = await finishedRes.json();
-    
-    const jobs = [...(activeData.jobs || []), ...(finishedData.jobs || [])];
+    const jobsData = await jobsRes.json();
+    const jobs = jobsData.jobs || [];
 
     const deals = jobs.map(job => ({
       id: `hcp-${job.id}`,
@@ -41,4 +33,22 @@ exports.handler = async (event) => {
       salesRep: 'tristan',
       equipment: job.description || 'HVAC Service',
       sold: job.work_status === 'finished',
-      equipmentOrdered: false
+      equipmentOrdered: false,
+      commissionTech: job.assigned_employees?.[0] ? `${job.assigned_employees[0].first_name} ${job.assigned_employees[0].last_name}` : 'Unassigned',
+      estimateViews: 0,
+      lastActivity: job.scheduled_start ? new Date(job.scheduled_start).toISOString().split('T')[0] : new Date(job.updated_at).toISOString().split('T')[0],
+      source: 'HCP'
+    }));
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ deals, total: deals.length })
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message })
+    };
+  }
+};
