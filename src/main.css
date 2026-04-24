@@ -1,26 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* { font-family: 'Inter', sans-serif; }
-h1,h2,h3,h4,h5,h6 { font-family: 'Syne', sans-serif; font-weight: 700; }
-
-:root {
-  --primary: #0A0E27;
-  --secondary: #111729;
-  --accent: #D97706;
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
+* {
+  font-family: 'Inter', sans-serif;
 }
 
-body { background: linear-gradient(135deg, #0A0E27 0%, #111729 100%); color: #F5F5F5; }
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+}
 
-@layer base {
-  input, select, textarea { @apply transition-all duration-200; }
-  input:focus, select:focus { @apply outline-none ring-2 ring-amber-600/50; }
-  button { @apply transition-all duration-200; }
-  button:hover { @apply scale-105; }
+body {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+  color: #f8fafc;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid;
 }

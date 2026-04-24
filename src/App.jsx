@@ -1,189 +1,135 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { LogOut, Users, TrendingUp, Phone, MessageSquare, Plus, Edit2, Trash2, Search, Filter } from 'lucide-react';
+import { LogOut, Phone, MessageSquare, Search } from 'lucide-react';
 
-export default function LionsHub() {
-  const [view, setView] = useState('login');
+export default function App() {
+  const [screen, setScreen] = useState('login');
   const [user, setUser] = useState(null);
   const [deals, setDeals] = useState([]);
-  const [dealMeta, setDealMeta] = useState({});
+  const [dealState, setDealState] = useState({});
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
 
   const salesTeam = [
-    { id: 'tristan', name: 'Tristan Gilliland', title: 'Owner', color: 'from-blue-600 to-blue-800' },
-    { id: 'michael', name: 'Michael Nicoletti', title: 'Sales Rep', color: 'from-blue-500 to-blue-700' },
-    { id: 'jake-b', name: 'Jake Bernard', title: 'Sales Rep', color: 'from-blue-500 to-blue-700' },
-    { id: 'catherine', name: 'Catherine Scheswohl', title: 'CSR', color: 'from-blue-500 to-blue-700' }
+    { id: 'tristan', name: 'Tristan Gilliland' },
+    { id: 'michael', name: 'Michael Nicoletti' },
+    { id: 'jake', name: 'Jake Bernard' },
+    { id: 'catherine', name: 'Catherine Scheswohl' }
   ];
 
   const techTeam = [
-    { id: 'ed', name: 'Ed Pfeiffer', title: 'Lead Tech', color: 'from-emerald-600 to-emerald-800' },
-    { id: 'jake-c', name: 'Jake Casmay', title: 'Technician', color: 'from-emerald-500 to-emerald-700' },
-    { id: 'josh', name: 'Josh Fazio', title: 'Technician', color: 'from-emerald-500 to-emerald-700' },
-    { id: 'greg', name: 'Greg Janowski', title: 'Technician', color: 'from-emerald-500 to-emerald-700' },
-    { id: 'scott', name: 'Scott Deakin', title: 'Technician', color: 'from-emerald-500 to-emerald-700' },
-    { id: 'tyler', name: 'Tyler Gilliland', title: 'Technician', color: 'from-emerald-500 to-emerald-700' },
-    { id: 'will', name: 'Will Egoavil', title: 'Technician', color: 'from-emerald-500 to-emerald-700' },
-    { id: 'ethan', name: 'Ethan Harker', title: 'Technician', color: 'from-emerald-500 to-emerald-700' }
+    'Ed Pfeiffer', 'Jake Casmay', 'Josh Fazio', 'Greg Janowski',
+    'Scott Deakin', 'Tyler Gilliland', 'Will Egoavil', 'Ethan Harker'
   ];
 
+  // Load deals
   const loadDeals = async () => {
     try {
       const [hcp, comp] = await Promise.all([
-        fetch('/.netlify/functions/hcp-fetch-estimates').then(r => r.json()).catch(() => ({ deals: [] })),
-        fetch('/.netlify/functions/fetch-completed-jobs').then(r => r.json()).catch(() => ({ deals: [] }))
+        fetch('/.netlify/functions/hcp-fetch').then(r => r.json()).catch(() => ({ deals: [] })),
+        fetch('/.netlify/functions/completed-fetch').then(r => r.json()).catch(() => ({ deals: [] }))
       ]);
       const all = [...(hcp.deals || []), ...(comp.deals || [])];
-      setDeals(all.map((d, i) => ({ ...d, id: d.id || `deal-${i}` })));
-    } catch (e) { console.error(e); }
+      setDeals(all);
+    } catch (e) {
+      console.error('Load error:', e);
+    }
   };
 
   useEffect(() => {
-    const meta = localStorage.getItem('dealMeta');
-    if (meta) setDealMeta(JSON.parse(meta));
-    const d = localStorage.getItem('deals');
-    if (d) setDeals(JSON.parse(d));
-    else loadDeals();
+    const saved = localStorage.getItem('dealState');
+    if (saved) setDealState(JSON.parse(saved));
+    loadDeals();
   }, []);
 
-  useEffect(() => { localStorage.setItem('dealMeta', JSON.stringify(dealMeta)); }, [dealMeta]);
-  useEffect(() => { localStorage.setItem('deals', JSON.stringify(deals)); }, [deals]);
+  useEffect(() => {
+    localStorage.setItem('dealState', JSON.stringify(dealState));
+  }, [dealState]);
 
-  const updateDeal = (id, field, val) => setDealMeta(prev => ({ ...prev, [id]: { ...prev[id], [field]: val } }));
+  const updateState = (id, field, value) => {
+    setDealState(prev => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value }
+    }));
+  };
 
-  // Filter & search
-  const filteredDeals = useMemo(() => {
-    let filtered = deals;
+  // Filter logic
+  const filtered = useMemo(() => {
+    let result = deals;
 
-    // Tech only sees THEIR jobs
+    // Tech only sees assigned jobs
     if (user?.type === 'tech') {
-      filtered = filtered.filter(d => dealMeta[d.id]?.assignedTech === user.name);
+      result = result.filter(d => dealState[d.id]?.assignedTech === user.name);
     }
 
-    // Apply search
-    filtered = filtered.filter(d => {
-      const meta = dealMeta[d.id] || {};
-      const matchesSearch = d.customerName?.toLowerCase().includes(search.toLowerCase()) || d.phone?.includes(search);
-      return matchesSearch;
-    });
+    // Search
+    if (search) {
+      result = result.filter(d =>
+        d.customerName.toLowerCase().includes(search.toLowerCase()) ||
+        d.phone.includes(search)
+      );
+    }
 
-    // Apply stage filter
-    filtered = filtered.filter(d => {
-      const meta = dealMeta[d.id] || {};
-      if (filter === 'all') return true;
-      return (meta.stage || 'open') === filter;
-    });
+    // Filter by stage
+    if (filter !== 'all') {
+      result = result.filter(d => (dealState[d.id]?.stage || 'open') === filter);
+    }
 
-    return filtered;
-  }, [deals, dealMeta, search, filter, user]);
+    return result;
+  }, [deals, dealState, search, filter, user]);
 
-  const StatCard = ({ label, value, color = 'amber' }) => (
-    <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 backdrop-blur-sm">
-      <p className="text-xs font-bold text-slate-400 uppercase mb-1">{label}</p>
-      <p className={`text-2xl font-bold text-${color}-400`}>{value}</p>
-    </div>
-  );
-
-  const getJobTypeColor = (type) => {
-    const colors = {
-      'Service': 'cyan',
-      'Maintenance': 'purple',
-      'Install': 'orange',
-      'Sales': 'blue'
-    };
-    return colors[type] || 'slate';
+  // Job type badge style
+  const getTypeStyle = (type) => {
+    if (!type) return 'bg-slate-700 text-slate-200 border-slate-600';
+    const lower = type.toLowerCase();
+    if (lower.includes('service')) return 'bg-cyan-700 text-cyan-100 border-cyan-600';
+    if (lower.includes('maintenance')) return 'bg-purple-700 text-purple-100 border-purple-600';
+    if (lower.includes('install')) return 'bg-orange-700 text-orange-100 border-orange-600';
+    if (lower.includes('maintenance')) return 'bg-blue-700 text-blue-100 border-blue-600';
+    return 'bg-indigo-700 text-indigo-100 border-indigo-600';
   };
 
-  const DealRow = ({ deal }) => {
-    const meta = dealMeta[deal.id] || {};
-    const price = meta.price || deal.jobTotalAmount || 0;
-    const jobType = deal.jobType || 'Service'; // From HCP
-    const isTech = user?.type === 'tech';
-
-    return (
-      <div className="bg-slate-800/40 border border-slate-700/40 rounded-lg p-4 hover:bg-slate-800/60 transition">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-white">{deal.customerName}</h3>
-            <p className="text-sm text-slate-400">{deal.phone}</p>
-          </div>
-          <p className="text-amber-500 font-bold text-lg ml-4">${price.toLocaleString()}</p>
-        </div>
-
-        {/* Job Type - READ ONLY (from HCP) */}
-        <div className="mb-3">
-          <span className={`text-xs font-bold px-3 py-1.5 rounded-full bg-${getJobTypeColor(jobType)}-900/30 text-${getJobTypeColor(jobType)}-300 border border-${getJobTypeColor(jobType)}-700/50`}>
-            {jobType}
-          </span>
-        </div>
-
-        {/* Editable Fields */}
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <select value={meta.stage || 'open'} onChange={(e) => updateDeal(deal.id, 'stage', e.target.value)} className="px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded text-xs text-white font-semibold">
-            <option value="open">Open</option>
-            <option value="negotiating">Negotiating</option>
-            <option value="sold">Sold</option>
-            <option value="lost">Lost</option>
-          </select>
-
-          <input type="number" value={price} onChange={(e) => updateDeal(deal.id, 'price', parseFloat(e.target.value))} className="px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded text-xs text-white font-semibold" />
-        </div>
-
-        {/* Contact */}
-        <div className="flex gap-2 mb-3">
-          {deal.phone && (
-            <>
-              <a href={`tel:${deal.phone}`} className="flex-1 px-3 py-1.5 bg-blue-600/40 hover:bg-blue-600/60 border border-blue-500/30 rounded text-xs font-semibold text-blue-300 text-center transition flex items-center justify-center gap-1">
-                <Phone className="w-3 h-3" /> Call
-              </a>
-              <a href={`sms:${deal.phone}`} className="flex-1 px-3 py-1.5 bg-emerald-600/40 hover:bg-emerald-600/60 border border-emerald-500/30 rounded text-xs font-semibold text-emerald-300 text-center transition flex items-center justify-center gap-1">
-                <MessageSquare className="w-3 h-3" /> Text
-              </a>
-            </>
-          )}
-        </div>
-
-        {/* Tech Assignment - Sales reps only */}
-        {!isTech && (
-          <select value={meta.assignedTech || ''} onChange={(e) => updateDeal(deal.id, 'assignedTech', e.target.value)} className="w-full px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded text-xs text-white font-semibold">
-            <option value="">→ Assign Tech</option>
-            {techTeam.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
-          </select>
-        )}
-      </div>
-    );
-  };
-
-  if (view === 'login') {
+  if (screen === 'login') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 flex items-center justify-center p-6">
         <div className="w-full max-w-5xl">
           <div className="text-center mb-16">
-            <div className="text-6xl mb-6">🦁</div>
-            <h1 className="text-5xl font-bold text-white mb-2">Lions Operations</h1>
-            <p className="text-amber-500 text-lg font-semibold">Command Hub</p>
+            <div className="text-6xl mb-4">🦁</div>
+            <h1 className="text-5xl font-bold text-white mb-1">Lions Operations</h1>
+            <p className="text-amber-500 font-semibold">Sales Command Center</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-12">
-            <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/20 border border-blue-700/30 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Sales Team</h2>
-              <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">Sales Team</h2>
+              <div className="space-y-2">
                 {salesTeam.map(rep => (
-                  <button key={rep.id} onClick={() => { setUser({ ...rep, type: 'rep' }); setView('dashboard'); }} className="w-full p-4 bg-blue-900/30 hover:bg-blue-800/50 border border-blue-700/40 rounded-lg text-left transition">
-                    <h3 className="font-bold text-blue-100">{rep.name}</h3>
-                    <p className="text-xs text-blue-300/70 mt-1">{rep.title}</p>
+                  <button
+                    key={rep.id}
+                    onClick={() => {
+                      setUser({ name: rep.name, type: 'rep' });
+                      setScreen('dash');
+                    }}
+                    className="w-full p-3 bg-blue-900/40 hover:bg-blue-800/60 border border-blue-700/50 rounded text-left text-blue-100 font-semibold text-sm transition"
+                  >
+                    {rep.name}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-900/40 to-emerald-800/20 border border-emerald-700/30 rounded-2xl p-8">
-              <h2 className="text-2xl font-bold text-white mb-6">Tech Team</h2>
-              <div className="space-y-3">
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4">Technicians</h2>
+              <div className="space-y-2">
                 {techTeam.map(tech => (
-                  <button key={tech.id} onClick={() => { setUser({ ...tech, type: 'tech' }); setView('dashboard'); }} className="w-full p-4 bg-emerald-900/30 hover:bg-emerald-800/50 border border-emerald-700/40 rounded-lg text-left transition">
-                    <h3 className="font-bold text-emerald-100">{tech.name}</h3>
-                    <p className="text-xs text-emerald-300/70 mt-1">{tech.title}</p>
+                  <button
+                    key={tech}
+                    onClick={() => {
+                      setUser({ name: tech, type: 'tech' });
+                      setScreen('dash');
+                    }}
+                    className="w-full p-3 bg-emerald-900/40 hover:bg-emerald-800/60 border border-emerald-700/50 rounded text-left text-emerald-100 font-semibold text-sm transition"
+                  >
+                    {tech}
                   </button>
                 ))}
               </div>
@@ -194,40 +140,71 @@ export default function LionsHub() {
     );
   }
 
-  if (view === 'dashboard') {
+  if (screen === 'dash') {
     const isTech = user?.type === 'tech';
+    const open = filtered.filter(d => (dealState[d.id]?.stage || 'open') === 'open').length;
+    const sold = filtered.filter(d => dealState[d.id]?.stage === 'sold').length;
+    const totalValue = filtered.reduce((sum, d) => sum + d.total, 0);
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
         {/* Header */}
-        <div className="sticky top-0 z-50 backdrop-blur-md bg-slate-950/90 border-b border-slate-800/50">
-          <div className="max-w-7xl mx-auto px-8 py-8">
-            <div className="flex items-center justify-between mb-8">
+        <div className="sticky top-0 z-50 bg-slate-950/95 border-b border-white/10 backdrop-blur">
+          <div className="max-w-7xl mx-auto px-8 py-6">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-4xl font-bold text-white">{user.name}</h1>
-                <p className={`text-sm mt-2 font-semibold ${isTech ? 'text-emerald-400' : 'text-blue-400'}`}>{user.title}</p>
+                <h1 className="text-3xl font-bold text-white">{user.name}</h1>
+                <p className="text-sm text-slate-400">{isTech ? 'Technician' : 'Sales Rep'}</p>
               </div>
-              <button onClick={() => { setUser(null); setView('login'); }} className="flex items-center gap-2 px-6 py-3 bg-red-900/30 hover:bg-red-800/50 border border-red-700/40 rounded-lg text-red-300 font-semibold">
+              <button
+                onClick={() => {
+                  setUser(null);
+                  setScreen('login');
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-red-900/30 hover:bg-red-800/50 border border-red-700/40 rounded text-red-300 text-sm font-semibold transition"
+              >
                 <LogOut className="w-4 h-4" /> Logout
               </button>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-4 gap-3 mb-6">
-              <StatCard label="Pipeline" value={`$${(filteredDeals.reduce((sum, d) => sum + (dealMeta[d.id]?.price || d.jobTotalAmount || 0), 0) / 1000).toFixed(1)}k`} />
-              <StatCard label="Open" value={filteredDeals.filter(d => (dealMeta[d.id]?.stage || 'open') === 'open').length} color="blue" />
-              <StatCard label="Negotiating" value={filteredDeals.filter(d => dealMeta[d.id]?.stage === 'negotiating').length} color="yellow" />
-              <StatCard label="Sold" value={filteredDeals.filter(d => dealMeta[d.id]?.stage === 'sold').length} color="emerald" />
+              <div className="bg-white/5 border border-white/10 rounded p-3">
+                <p className="text-xs text-slate-400 font-bold mb-1">PIPELINE</p>
+                <p className="text-2xl font-bold text-amber-400">${(totalValue / 1000).toFixed(1)}k</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded p-3">
+                <p className="text-xs text-slate-400 font-bold mb-1">OPEN</p>
+                <p className="text-2xl font-bold text-blue-400">{open}</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded p-3">
+                <p className="text-xs text-slate-400 font-bold mb-1">SOLD</p>
+                <p className="text-2xl font-bold text-emerald-400">{sold}</p>
+              </div>
+              <div className="bg-white/5 border border-white/10 rounded p-3">
+                <p className="text-xs text-slate-400 font-bold mb-1">TOTAL DEALS</p>
+                <p className="text-2xl font-bold text-white">{filtered.length}</p>
+              </div>
             </div>
 
-            {/* Search & Filter */}
-            <div className="flex gap-4">
+            {/* Controls */}
+            <div className="flex gap-3">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-500" />
-                <input type="text" placeholder="Search deals..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white placeholder-slate-400" />
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search customer or phone..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2 bg-white/10 border border-white/20 rounded text-sm text-white placeholder-slate-400"
+                />
               </div>
-              <select value={filter} onChange={(e) => setFilter(e.target.value)} className="px-4 py-2.5 bg-slate-700/50 border border-slate-600/50 rounded-lg text-sm text-white font-semibold">
-                <option value="all">All Deals</option>
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="px-3 py-2 bg-white/10 border border-white/20 rounded text-sm text-white font-semibold"
+              >
+                <option value="all">All Stages</option>
                 <option value="open">Open</option>
                 <option value="negotiating">Negotiating</option>
                 <option value="sold">Sold</option>
@@ -237,21 +214,86 @@ export default function LionsHub() {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="max-w-7xl mx-auto px-8 py-12">
-          {filteredDeals.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-slate-400 text-lg">{isTech ? 'No jobs assigned to you' : 'No deals found'}</p>
+        {/* Deals */}
+        <div className="max-w-7xl mx-auto px-8 py-8">
+          {filtered.length === 0 ? (
+            <div className="text-center py-20 text-slate-400">
+              {isTech ? 'No jobs assigned yet' : 'No deals found'}
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredDeals.map(deal => <DealRow key={deal.id} deal={deal} />)}
+              {filtered.map(deal => {
+                const state = dealState[deal.id] || {};
+                return (
+                  <div key={deal.id} className="bg-white/5 border border-white/10 rounded-lg p-4 hover:border-white/20 transition">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-bold text-white text-sm">{deal.customerName}</h3>
+                        <p className="text-xs text-slate-400">{deal.phone}</p>
+                      </div>
+                      <p className="font-bold text-amber-400">${deal.total.toLocaleString()}</p>
+                    </div>
+
+                    {deal.address && <p className="text-xs text-slate-400 mb-2">{deal.address}</p>}
+
+                    {/* Job Type Badge - FROM HCP */}
+                    {deal.jobType && (
+                      <div className="mb-3">
+                        <span className={`badge ${getTypeStyle(deal.jobType)}`}>
+                          {deal.jobType}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <select
+                        value={state.stage || 'open'}
+                        onChange={(e) => updateState(deal.id, 'stage', e.target.value)}
+                        className="w-full px-2 py-1.5 bg-white/10 border border-white/20 rounded text-xs text-white font-semibold"
+                      >
+                        <option value="open">Open</option>
+                        <option value="negotiating">Negotiating</option>
+                        <option value="sold">Sold</option>
+                        <option value="lost">Lost</option>
+                      </select>
+
+                      {deal.phone && (
+                        <div className="flex gap-2">
+                          
+                            href={`tel:${deal.phone}`}
+                            className="flex-1 px-2 py-1.5 bg-blue-600/40 hover:bg-blue-600/60 border border-blue-500/30 rounded text-xs font-semibold text-blue-300 text-center transition flex items-center justify-center gap-1"
+                          >
+                            <Phone className="w-3 h-3" /> Call
+                          </a>
+                          
+                            href={`sms:${deal.phone}`}
+                            className="flex-1 px-2 py-1.5 bg-emerald-600/40 hover:bg-emerald-600/60 border border-emerald-500/30 rounded text-xs font-semibold text-emerald-300 text-center transition flex items-center justify-center gap-1"
+                          >
+                            <MessageSquare className="w-3 h-3" /> Text
+                          </a>
+                        </div>
+                      )}
+
+                      {!isTech && (
+                        <select
+                          value={state.assignedTech || ''}
+                          onChange={(e) => updateState(deal.id, 'assignedTech', e.target.value)}
+                          className="w-full px-2 py-1.5 bg-white/10 border border-white/20 rounded text-xs text-white font-semibold"
+                        >
+                          <option value="">Assign Tech...</option>
+                          {techTeam.map(t => (
+                            <option key={t} value={t}>{t}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
       </div>
     );
   }
-
-  return null;
 }
