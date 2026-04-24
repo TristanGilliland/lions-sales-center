@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogOut, Phone, MessageSquare, Zap, Settings } from 'lucide-react';
+import { LogOut, Phone, MessageSquare } from 'lucide-react';
 
 export default function SalesCommandCenter() {
   const [screen, setScreen] = useState('login');
@@ -15,13 +15,9 @@ export default function SalesCommandCenter() {
   const loadDeals = async () => {
     setLoading(true);
     try {
-      const [hcp, comp] = await Promise.all([
-        fetch('/.netlify/functions/hcp-fetch-estimates'),
-        fetch('/.netlify/functions/fetch-completed-jobs')
-      ]);
-      const hcpData = await hcp.json();
-      const compData = await comp.json();
-      setDeals([...(hcpData.deals || []), ...(compData.deals || [])]);
+      const hcp = await fetch('/.netlify/functions/hcp-fetch-estimates').then(r => r.json());
+      const comp = await fetch('/.netlify/functions/fetch-completed-jobs').then(r => r.json());
+      setDeals([...(hcp.deals || []), ...(comp.deals || [])]);
     } catch (e) { console.error(e); }
     setLoading(false);
   };
@@ -39,6 +35,117 @@ export default function SalesCommandCenter() {
 
   const updateDeal = (id, key, val) => {
     setStatus(prev => ({ ...prev, [id]: { ...prev[id], [key]: val } }));
+  };
+
+  const DealCard = ({ deal }) => {
+    const d = status[deal.id] || {};
+    const price = d.customPrice !== undefined ? d.customPrice : (deal.jobTotalAmount || 0);
+
+    return (
+      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-5 hover:border-slate-600 transition">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="font-bold text-white text-lg">{deal.customerName}</h3>
+            {deal.phone && <p className="text-sm text-slate-400">{deal.phone}</p>}
+          </div>
+          <p className="text-amber-400 font-bold text-xl ml-4">${price.toLocaleString()}</p>
+        </div>
+
+        {deal.address && <p className="text-sm text-slate-400 mb-3">{deal.address}</p>}
+
+        <div className="space-y-3 border-t border-slate-700 pt-3">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Add tag"
+              value={d.newTag || ''}
+              onChange={(e) => updateDeal(deal.id, 'newTag', e.target.value)}
+              className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white placeholder-slate-500"
+            />
+            <button
+              onClick={() => {
+                if (d.newTag?.trim()) {
+                  updateDeal(deal.id, 'tags', [...(d.tags || []), d.newTag.trim()]);
+                  updateDeal(deal.id, 'newTag', '');
+                }
+              }}
+              className="px-3 py-2 bg-amber-600 hover:bg-amber-700 rounded text-sm font-semibold text-white transition"
+            >
+              Add
+            </button>
+          </div>
+
+          {d.tags && d.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {d.tags.map(tag => (
+                <div key={tag} className="bg-amber-900/40 border border-amber-700/50 px-2 py-1 rounded text-xs font-semibold text-amber-300 flex items-center gap-2">
+                  {tag}
+                  <button onClick={() => updateDeal(deal.id, 'tags', d.tags.filter(t => t !== tag))} className="hover:text-amber-200">×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <select
+            value={d.stage || 'Negotiating'}
+            onChange={(e) => updateDeal(deal.id, 'stage', e.target.value)}
+            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
+          >
+            <option>Negotiating</option>
+            <option>Sold</option>
+            <option>Lost</option>
+            <option>On Hold</option>
+          </select>
+
+          <input
+            type="number"
+            value={price}
+            onChange={(e) => updateDeal(deal.id, 'customPrice', parseFloat(e.target.value))}
+            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
+          />
+
+          <div className="flex gap-2">
+            {deal.phone && (
+              <>
+                <a href={`tel:${deal.phone}`} className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-semibold text-white text-center transition flex items-center justify-center gap-2">
+                  <Phone className="w-4 h-4" /> Call
+                </a>
+                <a href={`sms:${deal.phone}`} className="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 rounded text-sm font-semibold text-white text-center transition flex items-center justify-center gap-2">
+                  <MessageSquare className="w-4 h-4" /> Text
+                </a>
+              </>
+            )}
+          </div>
+
+          <select
+            value={d.tech || ''}
+            onChange={(e) => updateDeal(deal.id, 'tech', e.target.value)}
+            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
+          >
+            <option value="">Assign Tech</option>
+            {techs.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+
+          <select
+            value={d.soldBy || ''}
+            onChange={(e) => updateDeal(deal.id, 'soldBy', e.target.value)}
+            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
+          >
+            <option value="">Who Made Sale</option>
+            {allUsers.map(u => <option key={u} value={u}>{u}</option>)}
+          </select>
+
+          <button
+            onClick={() => updateDeal(deal.id, 'equipped', !d.equipped)}
+            className={`w-full px-3 py-2 rounded text-sm font-semibold transition ${
+              d.equipped ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+            }`}
+          >
+            {d.equipped ? '✓ Equipment Ordered' : 'Equipment Ordered'}
+          </button>
+        </div>
+      </div>
+    );
   };
 
   if (screen === 'login') {
@@ -91,131 +198,6 @@ export default function SalesCommandCenter() {
     );
   }
 
-  const DealCard = ({ deal }) => {
-    const d = status[deal.id] || {};
-    const price = d.customPrice !== undefined ? d.customPrice : (deal.jobTotalAmount || 0);
-
-    return (
-      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-5 hover:border-slate-600 transition">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <h3 className="font-bold text-white text-lg">{deal.customerName}</h3>
-            {deal.phone && <p className="text-sm text-slate-400">{deal.phone}</p>}
-          </div>
-          <p className="text-amber-400 font-bold text-xl ml-4">${price.toLocaleString()}</p>
-        </div>
-
-        {deal.address && <p className="text-sm text-slate-400 mb-3">{deal.address}</p>}
-
-        <div className="space-y-3 border-t border-slate-700 pt-3">
-          {/* Custom Tags */}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Add tag"
-              value={d.newTag || ''}
-              onChange={(e) => updateDeal(deal.id, 'newTag', e.target.value)}
-              className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white placeholder-slate-500"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && d.newTag?.trim()) {
-                  updateDeal(deal.id, 'tags', [...(d.tags || []), d.newTag.trim()]);
-                  updateDeal(deal.id, 'newTag', '');
-                }
-              }}
-            />
-            <button
-              onClick={() => {
-                if (d.newTag?.trim()) {
-                  updateDeal(deal.id, 'tags', [...(d.tags || []), d.newTag.trim()]);
-                  updateDeal(deal.id, 'newTag', '');
-                }
-              }}
-              className="px-3 py-2 bg-amber-600 hover:bg-amber-700 rounded text-sm font-semibold text-white transition"
-            >
-              Add
-            </button>
-          </div>
-
-          {d.tags && d.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {d.tags.map(tag => (
-                <div key={tag} className="bg-amber-900/40 border border-amber-700/50 px-2 py-1 rounded text-xs font-semibold text-amber-300 flex items-center gap-2">
-                  {tag}
-                  <button onClick={() => updateDeal(deal.id, 'tags', d.tags.filter(t => t !== tag))} className="hover:text-amber-200">×</button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Deal Stage */}
-          <select
-            value={d.stage || 'Negotiating'}
-            onChange={(e) => updateDeal(deal.id, 'stage', e.target.value)}
-            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
-          >
-            <option>Negotiating</option>
-            <option>Sold</option>
-            <option>Lost</option>
-            <option>On Hold</option>
-          </select>
-
-          {/* Price Edit */}
-          <input
-            type="number"
-            value={price}
-            onChange={(e) => updateDeal(deal.id, 'customPrice', parseFloat(e.target.value))}
-            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
-            placeholder="Price"
-          />
-
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            {deal.phone && (
-              <>
-                <a href={`tel:${deal.phone}`} className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-semibold text-white text-center transition flex items-center justify-center gap-2">
-                  <Phone className="w-4 h-4" /> Call
-                </a>
-                <a href={`sms:${deal.phone}`} className="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 rounded text-sm font-semibold text-white text-center transition flex items-center justify-center gap-2">
-                  <MessageSquare className="w-4 h-4" /> Text
-                </a>
-              </>
-            )}
-          </div>
-
-          {/* Assign Tech */}
-          <select
-            value={d.tech || ''}
-            onChange={(e) => updateDeal(deal.id, 'tech', e.target.value)}
-            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
-          >
-            <option value="">Assign Tech</option>
-            {techs.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-
-          {/* Who Made Sale */}
-          <select
-            value={d.soldBy || ''}
-            onChange={(e) => updateDeal(deal.id, 'soldBy', e.target.value)}
-            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
-          >
-            <option value="">Who Made Sale</option>
-            {allUsers.map(u => <option key={u} value={u}>{u}</option>)}
-          </select>
-
-          {/* Equipment Ordered */}
-          <button
-            onClick={() => updateDeal(deal.id, 'equipped', !d.equipped)}
-            className={`w-full px-3 py-2 rounded text-sm font-semibold transition ${
-              d.equipped ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-            }`}
-          >
-            {d.equipped ? '✓ Equipment Ordered' : 'Equipment Ordered'}
-          </button>
-        </div>
-      </div>
-    );
-  };
-
   if (screen === 'rep') {
     const [filter, setFilter] = useState('all');
     const filtered = deals.filter(deal => {
@@ -230,10 +212,10 @@ export default function SalesCommandCenter() {
     return (
       <div className="min-h-screen bg-slate-950">
         <div className="sticky top-0 z-40 bg-slate-900 border-b border-slate-800 p-6">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="max-w-7xl mx-auto flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-white">Sales Pipeline</h1>
-              <p className="text-amber-400 text-sm mt-1">{user.name}</p>
+              <p className="text-amber-400 text-sm mt-1">{user?.name}</p>
             </div>
             <button
               onClick={() => { setUser(null); setScreen('login'); }}
@@ -242,7 +224,7 @@ export default function SalesCommandCenter() {
               <LogOut className="w-4 h-4" /> Logout
             </button>
           </div>
-          <div className="max-w-7xl mx-auto mt-6 flex gap-2 overflow-x-auto">
+          <div className="max-w-7xl mx-auto flex gap-2 overflow-x-auto">
             {[
               { id: 'all', label: 'All Deals' },
               { id: 'negotiating', label: 'Negotiating' },
@@ -266,7 +248,9 @@ export default function SalesCommandCenter() {
         </div>
         <div className="max-w-7xl mx-auto px-6 py-8">
           {loading ? (
-            <p className="text-center text-slate-400">Loading...</p>
+            <p className="text-center text-slate-400">Loading deals...</p>
+          ) : filtered.length === 0 ? (
+            <p className="text-center text-slate-400">No deals found</p>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filtered.map(deal => <DealCard key={deal.id} deal={deal} />)}
@@ -278,15 +262,15 @@ export default function SalesCommandCenter() {
   }
 
   if (screen === 'tech') {
-    const myDeals = deals.filter(d => status[d.id]?.tech === user.name);
+    const myDeals = deals.filter(d => status[d.id]?.tech === user?.name);
     const totalCommission = myDeals.reduce((sum, d) => sum + (d.commissionAmount || 0), 0);
 
     return (
       <div className="min-h-screen bg-slate-950">
         <div className="sticky top-0 z-40 bg-slate-900 border-b border-slate-800 p-6">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="max-w-7xl mx-auto flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-3xl font-bold text-white">{user.name}</h1>
+              <h1 className="text-3xl font-bold text-white">{user?.name}</h1>
               <p className="text-emerald-400 text-sm mt-1">Performance</p>
             </div>
             <button
@@ -296,7 +280,7 @@ export default function SalesCommandCenter() {
               <LogOut className="w-4 h-4" /> Logout
             </button>
           </div>
-          <div className="max-w-7xl mx-auto mt-6 grid grid-cols-3 gap-4">
+          <div className="max-w-7xl mx-auto grid grid-cols-3 gap-4">
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
               <p className="text-xs text-slate-400 font-semibold uppercase mb-2">Commission</p>
               <p className="text-2xl font-bold text-amber-400">${totalCommission.toLocaleString()}</p>
