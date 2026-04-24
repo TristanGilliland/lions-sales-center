@@ -38,6 +38,9 @@ exports.handler = async (event) => {
         }
       });
 
+      // Extract job type from description or tags
+      const jobType = job.description || job.job_type || job.tag || '';
+
       return {
         id: job.id,
         customerName: job.customer_name || 'Unknown',
@@ -45,6 +48,7 @@ exports.handler = async (event) => {
         phone: customerInfo.phone,
         email: customerInfo.email,
         jobTotalAmount: jobTotal,
+        jobType: jobType, // Raw job type from HCP
         description: job.description || '',
         sold: false,
         stage: 'Open',
