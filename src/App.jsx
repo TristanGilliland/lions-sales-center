@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, MessageSquare, LogOut, TrendingUp, Award, BarChart3, Zap, CheckCircle, XCircle, Truck, Mail, MapPin } from 'lucide-react';
+import { Phone, MessageSquare, LogOut, TrendingUp, Award, BarChart3, Zap, CheckCircle, XCircle, Truck, Mail, MapPin, ChevronRight } from 'lucide-react';
 
 export default function SalesCommandCenter() {
   const [authState, setAuthState] = useState('login');
@@ -13,7 +13,7 @@ export default function SalesCommandCenter() {
   const [dealStatus, setDealStatus] = useState({});
 
   const salesReps = [
-    { id: 'tristan', name: 'Tristan (Owner)' },
+    { id: 'tristan', name: 'Tristan' },
     { id: 'michael', name: 'Michael' },
     { id: 'jake-b', name: 'Jake Bernard' },
     { id: 'catherine', name: 'Catherine' }
@@ -74,27 +74,27 @@ export default function SalesCommandCenter() {
 
   if (authState === 'login') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-orange-900 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          <div className="bg-white rounded-xl shadow-2xl p-8">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center shadow-lg">
-                <span className="text-white text-2xl font-bold">L</span>
+          <div className="bg-white rounded-2xl shadow-2xl p-10">
+            <div className="flex justify-center mb-8">
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white text-xl font-bold tracking-tighter">L</span>
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-center text-slate-900 mb-2">Lions Sales Command Center</h1>
-            <p className="text-center text-orange-600 font-semibold mb-8">We don't guess — we measure</p>
-            <div className="space-y-6">
+            <h1 className="text-4xl font-bold text-center text-slate-900 mb-2 tracking-tight">Lions Sales</h1>
+            <p className="text-center text-amber-700 font-semibold mb-10 text-sm">Command Center</p>
+            <div className="space-y-8">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900 mb-3">Sales Reps</h2>
-                <div className="grid grid-cols-2 gap-2">
-                  {salesReps.map(rep => (<button key={rep.id} onClick={() => handleLogin(rep.id, 'rep')} className="p-3 bg-blue-50 hover:bg-blue-100 border-2 border-blue-300 rounded-lg text-sm font-bold text-blue-900 transition">{rep.name}</button>))}
+                <h2 className="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest">Sales Representatives</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {salesReps.map(rep => (<button key={rep.id} onClick={() => handleLogin(rep.id, 'rep')} className="p-3 bg-slate-50 hover:bg-amber-50 border-2 border-slate-200 hover:border-amber-400 rounded-lg text-sm font-semibold text-slate-900 transition duration-200">{rep.name}</button>))}
                 </div>
               </div>
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900 mb-3">Technicians</h2>
-                <div className="grid grid-cols-2 gap-2">
-                  {technicians.map(tech => (<button key={tech} onClick={() => handleLogin(tech, 'tech')} className="p-3 bg-green-50 hover:bg-green-100 border-2 border-green-300 rounded-lg text-sm font-bold text-green-900 transition">{tech.split(' ')[0]}</button>))}
+              <div className="border-t border-slate-200 pt-8">
+                <h2 className="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest">Technicians</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {technicians.map(tech => (<button key={tech} onClick={() => handleLogin(tech, 'tech')} className="p-3 bg-slate-50 hover:bg-emerald-50 border-2 border-slate-200 hover:border-emerald-400 rounded-lg text-sm font-semibold text-slate-900 transition duration-200">{tech.split(' ')[0]}</button>))}
                 </div>
               </div>
             </div>
@@ -109,47 +109,45 @@ export default function SalesCommandCenter() {
     const displayPrice = getDisplayPrice(deal, status);
     
     return (
-      <div className="bg-gradient-to-br from-white to-blue-50 p-4 rounded-lg shadow-md border-2 border-blue-200">
-        <div className="flex justify-between items-start mb-3">
-          <div><h3 className="font-bold text-slate-900">{deal.customerName}</h3></div>
-          <p className="font-bold text-orange-600 text-lg">${displayPrice.toLocaleString()}</p>
-        </div>
-        
-        <div className="bg-blue-100 p-3 rounded-lg mb-3 space-y-1 text-sm">
-          {deal.address && (<div className="flex items-start gap-2"><MapPin className="w-4 h-4 text-blue-700 mt-0.5 flex-shrink-0" /><p className="text-slate-900">{deal.address}</p></div>)}
-          {deal.phone && (<div className="flex items-center gap-2"><Phone className="w-4 h-4 text-blue-700 flex-shrink-0" /><p className="text-slate-900">{deal.phone}</p></div>)}
-          {deal.email && (<div className="flex items-center gap-2"><Mail className="w-4 h-4 text-blue-700 flex-shrink-0" /><p className="text-slate-900 break-all">{deal.email}</p></div>)}
-        </div>
-
-        <div className="flex flex-wrap gap-2 mb-3">
-          {getDealTags(deal).map(tag => (<span key={tag} className="text-xs bg-orange-200 text-orange-900 px-2 py-1 rounded font-bold">{tag}</span>))}
-        </div>
-
-        <div className="flex gap-2 mb-3 border-t-2 border-blue-200 pt-3">
-          {deal.phone && (<>
-            <a href={`tel:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-white font-bold bg-blue-600 hover:bg-blue-700 rounded-lg py-2"><Phone className="w-4 h-4" /> Call</a>
-            <a href={`sms:${deal.phone}`} className="flex-1 flex items-center justify-center gap-1 text-sm text-white font-bold bg-green-600 hover:bg-green-700 rounded-lg py-2"><MessageSquare className="w-4 h-4" /> Text</a>
-          </>)}
-        </div>
-
-        <div className="flex gap-2 mb-3 border-t-2 border-blue-200 pt-3">
-          <input type="number" value={displayPrice} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], customPrice: parseFloat(e.target.value) || 0 } }))} className="flex-1 px-3 py-2 border-2 border-orange-300 rounded-lg text-sm font-bold bg-white text-slate-900" placeholder="Price" />
-        </div>
-
-        <div className="space-y-2 border-t-2 border-blue-200 pt-3">
-          <div className="flex gap-2">
-            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], sold: !prev[deal.id]?.sold } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.sold ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-900 hover:bg-slate-300'}`}><CheckCircle className="w-4 h-4" /> Sold</button>
-            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], lost: !prev[deal.id]?.lost } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.lost ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-900 hover:bg-slate-300'}`}><XCircle className="w-4 h-4" /> Lost</button>
+      <div className="bg-white rounded-xl shadow-sm hover:shadow-md border border-slate-200 hover:border-slate-300 transition overflow-hidden">
+        <div className="p-5">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex-1">
+              <h3 className="font-bold text-slate-900 text-lg mb-1">{deal.customerName}</h3>
+              <p className="text-sm text-slate-500">{deal.phone || 'No phone'}</p>
+            </div>
+            <p className="font-bold text-amber-700 text-2xl ml-4">${displayPrice.toLocaleString()}</p>
           </div>
-          <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], equipped: !prev[deal.id]?.equipped } }))} className={`w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-bold ${status.equipped ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-900 hover:bg-slate-300'}`}><Truck className="w-4 h-4" /> Equipment Ordered</button>
-          <select value={status.assignedTech || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], assignedTech: e.target.value } }))} className="w-full px-3 py-2 border-2 border-slate-400 rounded-lg text-sm font-semibold bg-white text-slate-900">
-            <option value="">Assign Tech →</option>
-            {technicians.map(tech => (<option key={tech} value={tech}>{tech}</option>))}
-          </select>
-          <select value={status.salesPerson || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], salesPerson: e.target.value } }))} className="w-full px-3 py-2 border-2 border-orange-400 rounded-lg text-sm font-semibold bg-white text-slate-900">
-            <option value="">Who Made Sale? →</option>
-            {allStaff.map(person => (<option key={person.id} value={person.name}>{person.name}</option>))}
-          </select>
+
+          {(deal.address || deal.phone || deal.email) && (
+            <div className="bg-slate-50 p-4 rounded-lg mb-4 space-y-2 text-sm">
+              {deal.address && (<div className="flex items-start gap-3"><MapPin className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" /><p className="text-slate-700">{deal.address}</p></div>)}
+              {deal.email && (<div className="flex items-center gap-3"><Mail className="w-4 h-4 text-slate-600 flex-shrink-0" /><p className="text-slate-700 break-all">{deal.email}</p></div>)}
+            </div>
+          )}
+
+          <div className="flex gap-2 mb-4">
+            {getDealTags(deal).map(tag => (<span key={tag} className="text-xs bg-amber-100 text-amber-900 px-3 py-1 rounded-full font-semibold">{tag}</span>))}
+          </div>
+
+          {deal.phone && (
+            <div className="flex gap-2 mb-4">
+              <a href={`tel:${deal.phone}`} className="flex-1 flex items-center justify-center gap-2 text-sm text-white font-semibold bg-blue-600 hover:bg-blue-700 rounded-lg py-2.5 transition"><Phone className="w-4 h-4" /> Call</a>
+              <a href={`sms:${deal.phone}`} className="flex-1 flex items-center justify-center gap-2 text-sm text-white font-semibold bg-emerald-600 hover:bg-emerald-700 rounded-lg py-2.5 transition"><MessageSquare className="w-4 h-4" /> Text</a>
+            </div>
+          )}
+
+          <div className="border-t border-slate-200 pt-4 space-y-3">
+            <input type="number" value={displayPrice} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], customPrice: parseFloat(e.target.value) || 0 } }))} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold bg-white text-slate-900 placeholder-slate-500" placeholder="Edit price" />
+
+            <div className="flex gap-2">
+              <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], sold: !prev[deal.id]?.sold } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${status.sold ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}><CheckCircle className="w-4 h-4" /> Sold</button>
+              <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], lost: !prev[deal.id]?.lost } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${status.lost ? 'bg-red-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}><XCircle className="w-4 h-4" /> Lost</button>
+            </div>
+            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], equipped: !prev[deal.id]?.equipped } }))} className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${status.equipped ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}><Truck className="w-4 h-4" /> Equipment Ordered</button>
+            <select value={status.assignedTech || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], assignedTech: e.target.value } }))} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="">Assign Tech</option>{technicians.map(tech => (<option key={tech} value={tech}>{tech}</option>))}</select>
+            <select value={status.salesPerson || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], salesPerson: e.target.value } }))} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="">Who Made Sale</option>{allStaff.map(person => (<option key={person.id} value={person.name}>{person.name}</option>))}</select>
+          </div>
         </div>
       </div>
     );
@@ -167,30 +165,27 @@ export default function SalesCommandCenter() {
     });
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-100 to-blue-50">
-        <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-b-4 border-orange-500 sticky top-0 z-40 shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div><h1 className="text-3xl font-bold text-white">Sales Pipeline</h1><p className="text-orange-300 font-semibold">{currentUser?.name}</p></div>
-            <div className="flex gap-2">
-              <button onClick={() => { localStorage.removeItem('lionsSalesDeals'); loadDeals(); }} className="p-2 hover:bg-slate-700 rounded-lg"><Zap className="w-5 h-5 text-orange-400" /></button>
-              <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold"><LogOut className="w-4 h-4" /> Logout</button>
+      <div className="min-h-screen bg-slate-50">
+        <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-6 py-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">Sales Pipeline</h1>
+                <p className="text-sm text-slate-600 mt-1">{currentUser?.name}</p>
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => { localStorage.removeItem('lionsSalesDeals'); loadDeals(); }} className="p-2.5 hover:bg-slate-100 rounded-lg transition"><Zap className="w-5 h-5 text-amber-600" /></button>
+                <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg font-semibold text-sm transition"><LogOut className="w-4 h-4" /> Logout</button>
+              </div>
             </div>
-          </div>
-          <div className="max-w-7xl mx-auto px-4 py-2 flex gap-2 border-t border-slate-700">
-            {['open', 'equipped', 'sold', 'lost'].map(view => (<button key={view} onClick={() => setPipelineView(view)} className={`px-4 py-2 rounded-lg font-bold whitespace-nowrap ${pipelineView === view ? 'bg-orange-500 text-white' : 'text-white hover:bg-slate-700'}`}>{view === 'open' ? 'Open' : view === 'equipped' ? 'Equipment Ordered' : view === 'sold' ? 'Sold' : 'Lost'}</button>))}
-          </div>
-          <div className="max-w-7xl mx-auto px-4 py-3 border-t border-slate-700">
-            <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-3 py-2 border-2 border-orange-500 rounded-lg text-sm font-bold bg-white text-slate-900">
-              <option value="all">All Tags</option>
-              <option value="Sales">Sales</option>
-              <option value="Service">Service</option>
-              <option value="Install">Install</option>
-              <option value="Maintenance">Maintenance</option>
-            </select>
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+              {['open', 'equipped', 'sold', 'lost'].map(view => (<button key={view} onClick={() => setPipelineView(view)} className={`px-4 py-2.5 rounded-lg font-semibold text-sm whitespace-nowrap transition ${pipelineView === view ? 'bg-amber-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{view === 'open' ? 'Open' : view === 'equipped' ? 'Equipment Ordered' : view === 'sold' ? 'Sold' : 'Lost'}</button>))}
+            </div>
+            <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="all">All Tags</option><option value="Sales">Sales</option><option value="Service">Service</option><option value="Install">Install</option><option value="Maintenance">Maintenance</option></select>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          {loading ? <p className="text-center py-12 text-slate-600 font-bold">Loading...</p> : filteredDeals.length === 0 ? <p className="text-center py-8 text-slate-600 font-bold">No deals</p> : <div className="grid gap-4">{filteredDeals.map(deal => <DealCard key={deal.id} deal={deal} />)}</div>}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {loading ? <p className="text-center py-12 text-slate-500">Loading...</p> : filteredDeals.length === 0 ? <p className="text-center py-8 text-slate-500">No deals in this view</p> : <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{filteredDeals.map(deal => <DealCard key={deal.id} deal={deal} />)}</div>}
         </div>
       </div>
     );
@@ -201,22 +196,22 @@ export default function SalesCommandCenter() {
     const totalRevenue = techDeals.reduce((sum, d) => sum + (d.commissionAmount || 0), 0);
     const jobCount = techDeals.length;
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-100 to-green-50">
-        <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-b-4 border-orange-500 sticky top-0 z-40 shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-white">{currentUser?.name}</h1>
-            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold"><LogOut className="w-4 h-4" /> Logout</button>
+      <div className="min-h-screen bg-slate-50">
+        <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-slate-900">{currentUser?.name}</h1>
+            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg font-semibold text-sm transition"><LogOut className="w-4 h-4" /> Logout</button>
           </div>
-          <div className="max-w-7xl mx-auto px-4 py-2 flex gap-2 border-t border-slate-700">
-            <button onClick={() => setViewMode('performance')} className="px-4 py-2 rounded-lg font-bold bg-orange-500 text-white">My Stats</button>
-            <button onClick={() => setViewMode('history')} className="px-4 py-2 rounded-lg font-bold text-white hover:bg-slate-700">History</button>
+          <div className="max-w-7xl mx-auto px-6 pb-4 flex gap-2 border-t border-slate-200">
+            <button onClick={() => setViewMode('performance')} className="px-4 py-3 rounded-t-lg font-semibold text-sm bg-amber-600 text-white">Performance</button>
+            <button onClick={() => setViewMode('history')} className="px-4 py-3 rounded-t-lg font-semibold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">History</button>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-orange-100 to-orange-200 p-6 rounded-lg shadow-lg border-2 border-orange-400"><p className="text-orange-800 text-sm font-bold">Commission</p><p className="text-4xl font-bold text-orange-900">${totalRevenue.toLocaleString()}</p><Award className="w-8 h-8 text-orange-600 mt-2" /></div>
-            <div className="bg-gradient-to-br from-green-100 to-green-200 p-6 rounded-lg shadow-lg border-2 border-green-400"><p className="text-green-800 text-sm font-bold">Jobs Completed</p><p className="text-4xl font-bold text-green-900">{jobCount}</p><TrendingUp className="w-8 h-8 text-green-600 mt-2" /></div>
-            <div className="bg-gradient-to-br from-blue-100 to-blue-200 p-6 rounded-lg shadow-lg border-2 border-blue-400"><p className="text-blue-800 text-sm font-bold">Avg Commission</p><p className="text-4xl font-bold text-blue-900">${jobCount > 0 ? Math.round(totalRevenue / jobCount).toLocaleString() : 0}</p><BarChart3 className="w-8 h-8 text-blue-600 mt-2" /></div>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6"><div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-slate-600 mb-2">Total Commission</p><p className="text-4xl font-bold text-amber-700">${totalRevenue.toLocaleString()}</p></div><Award className="w-10 h-10 text-amber-200" /></div></div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6"><div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-slate-600 mb-2">Jobs Completed</p><p className="text-4xl font-bold text-slate-900">{jobCount}</p></div><TrendingUp className="w-10 h-10 text-slate-200" /></div></div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6"><div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-slate-600 mb-2">Avg Commission</p><p className="text-4xl font-bold text-slate-900">${jobCount > 0 ? Math.round(totalRevenue / jobCount).toLocaleString() : 0}</p></div><BarChart3 className="w-10 h-10 text-slate-200" /></div></div>
           </div>
         </div>
       </div>
@@ -235,19 +230,19 @@ export default function SalesCommandCenter() {
     const sortedMonths = Object.keys(groupedByMonth).sort().reverse();
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-100 to-green-50">
-        <div className="bg-gradient-to-r from-slate-900 to-slate-800 border-b-4 border-orange-500 sticky top-0 z-40 shadow-lg">
-          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-white">{currentUser?.name} - History</h1>
-            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold"><LogOut className="w-4 h-4" /> Logout</button>
+      <div className="min-h-screen bg-slate-50">
+        <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-slate-900">{currentUser?.name} — History</h1>
+            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg font-semibold text-sm transition"><LogOut className="w-4 h-4" /> Logout</button>
           </div>
-          <div className="max-w-7xl mx-auto px-4 py-2 flex gap-2 border-t border-slate-700">
-            <button onClick={() => setViewMode('performance')} className="px-4 py-2 rounded-lg font-bold text-white hover:bg-slate-700">My Stats</button>
-            <button onClick={() => setViewMode('history')} className="px-4 py-2 rounded-lg font-bold bg-orange-500 text-white">History</button>
+          <div className="max-w-7xl mx-auto px-6 pb-4 flex gap-2 border-t border-slate-200">
+            <button onClick={() => setViewMode('performance')} className="px-4 py-3 rounded-t-lg font-semibold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">Performance</button>
+            <button onClick={() => setViewMode('history')} className="px-4 py-3 rounded-t-lg font-semibold text-sm bg-amber-600 text-white">History</button>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          {sortedMonths.length === 0 ? <p className="text-center py-8 text-slate-600 font-bold">No jobs</p> : sortedMonths.map(month => (<div key={month} className="mb-6"><h2 className="text-lg font-bold text-slate-900 mb-3 bg-orange-200 px-3 py-2 rounded-lg">{month}</h2><div className="space-y-2">{groupedByMonth[month].map(deal => (<div key={deal.id} className="bg-gradient-to-r from-white to-green-50 p-4 rounded-lg border-2 border-green-300"><div className="flex justify-between"><div><p className="font-bold text-slate-900">{deal.customerName}</p><p className="text-sm text-slate-600">{deal.completedDate}</p></div><p className="font-bold text-orange-600 text-lg">${(deal.commissionAmount || 0).toLocaleString()}</p></div></div>))}</div></div>))}
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {sortedMonths.length === 0 ? <p className="text-center py-12 text-slate-500">No jobs completed</p> : sortedMonths.map(month => (<div key={month} className="mb-8"><h2 className="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest">{month}</h2><div className="space-y-2">{groupedByMonth[month].map(deal => (<div key={deal.id} className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 flex justify-between items-center transition"><div><p className="font-semibold text-slate-900">{deal.customerName}</p><p className="text-sm text-slate-500">{deal.completedDate}</p></div><p className="font-bold text-amber-700 text-lg">${(deal.commissionAmount || 0).toLocaleString()}</p></div>))}</div></div>))}
         </div>
       </div>
     );
