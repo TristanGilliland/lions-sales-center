@@ -1,54 +1,59 @@
 exports.handler = async (event) => {
-  if (event.httpMethod !== 'GET') {
-    return { statusCode: 405, body: 'Method not allowed' };
-  }
-
   try {
     const HCP_API_KEY = process.env.HCP_API_KEY;
-    const HCP_BASE_URL = 'https://api.housecallpro.com';
+    const HCP_COMPANY_ID = 'd229639d-85d8-44ff-8831-27aa57333f50';
     
-    const headers = {
-      'Authorization': `Token ${HCP_API_KEY}`,
-      'Content-Type': 'application/json'
-    };
+    const estimatesRes = await fetch(
+      `https://api.housecallpro.com/v2/companies/${HCP_COMPANY_ID}/jobs?work_status=unfinished`,
+      { headers: { 'Authorization': `Token ${HCP_API_KEY}` } }
+    );
+    const estimatesData = await estimatesRes.json();
+    const jobs = estimatesData.data || [];
 
-    // Fetch all jobs (no status filter)
-    const url = `${HCP_BASE_URL}/jobs?limit=1000`;
-    
-    const jobsRes = await fetch(url, { headers });
+    const deals = await Promise.all(jobs.map(async (job) => {
+      let customerInfo = { address: '', phone: '', email: '' };
+      
+      if (job.customer_id) {
+        try {
+          const custRes = await fetch(
+            `https://api.housecallpro.com/v2/companies/${HCP_COMPANY_ID}/customers/${job.customer_id}`,
+            { headers: { 'Authorization': `Token ${HCP_API_KEY}` } }
+          );
+          const custData = await custRes.json();
+          if (custData.data) {
+            customerInfo = {
+              address: `${custData.data.street || ''} ${custData.data.city || ''} ${custData.data.state || ''}`.trim(),
+              phone: custData.data.phone || '',
+              email: custData.data.email || ''
+            };
+          }
+        } catch (e) { console.error('Customer fetch error:', e); }
+      }
 
-    if (!jobsRes.ok) {
-      return { statusCode: 500, body: JSON.stringify({ error: 'HCP API error' }) };
-    }
+      const lineItems = job.line_items || [];
+      let jobTotal = 0;
+      lineItems.forEach(item => {
+        if (item.item_type === 'line_item') {
+          jobTotal += (item.price || 0) * (item.quantity || 1);
+        }
+      });
 
-    const jobsData = await jobsRes.json();
-    const jobs = jobsData.jobs || [];
-
-    const deals = jobs.map(job => ({
-      id: `hcp-${job.id}`,
-      customerName: job.customer?.first_name + ' ' + job.customer?.last_name || 'Unknown',
-      amount: job.total_amount ? Math.round(job.total_amount / 100) : 0,
-      stage: job.work_status === 'finished' ? 'Sold' : 'Proposals',
-      createdDate: new Date(job.created_at).toISOString().split('T')[0],
-      salesRep: 'tristan',
-      equipment: job.description || 'HVAC Service',
-      sold: job.work_status === 'finished',
-      equipmentOrdered: false,
-      commissionTech: job.assigned_employees?.[0] ? `${job.assigned_employees[0].first_name} ${job.assigned_employees[0].last_name}` : 'Unassigned',
-      estimateViews: 0,
-      lastActivity: job.scheduled_start ? new Date(job.scheduled_start).toISOString().split('T')[0] : new Date(job.updated_at).toISOString().split('T')[0],
-      source: 'HCP'
+      return {
+        id: job.id,
+        customerName: job.customer_name || 'Unknown',
+        address: customerInfo.address,
+        phone: customerInfo.phone,
+        email: customerInfo.email,
+        jobTotalAmount: jobTotal,
+        description: job.description || '',
+        sold: false,
+        stage: 'Open',
+        source: 'HCP'
+      };
     }));
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ deals, total: deals.length })
-    };
+    return { statusCode: 200, body: JSON.stringify({ deals }) };
   } catch (error) {
-    console.error('Error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
-    };
+    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
 };
