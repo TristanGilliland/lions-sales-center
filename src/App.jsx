@@ -53,33 +53,29 @@ export default function LionsHub() {
 
   // Filter & search
   const filteredDeals = useMemo(() => {
-    return deals.filter(d => {
+    let filtered = deals;
+
+    // Tech only sees THEIR jobs
+    if (user?.type === 'tech') {
+      filtered = filtered.filter(d => dealMeta[d.id]?.assignedTech === user.name);
+    }
+
+    // Apply search
+    filtered = filtered.filter(d => {
       const meta = dealMeta[d.id] || {};
       const matchesSearch = d.customerName?.toLowerCase().includes(search.toLowerCase()) || d.phone?.includes(search);
-      const matchesFilter = filter === 'all' || (meta.stage || 'open') === filter;
-      return matchesSearch && matchesFilter;
+      return matchesSearch;
     });
-  }, [deals, dealMeta, search, filter]);
 
-  // Analytics
-  const analytics = useMemo(() => {
-    return {
-      totalValue: deals.reduce((sum, d) => sum + (dealMeta[d.id]?.price || d.jobTotalAmount || 0), 0),
-      totalCommission: deals.reduce((sum, d) => sum + (d.commissionAmount || 0), 0),
-      byStage: {
-        open: deals.filter(d => (dealMeta[d.id]?.stage || 'open') === 'open').length,
-        negotiating: deals.filter(d => (dealMeta[d.id]?.stage || 'open') === 'negotiating').length,
-        sold: deals.filter(d => dealMeta[d.id]?.stage === 'sold').length,
-        lost: deals.filter(d => dealMeta[d.id]?.stage === 'lost').length
-      },
-      byType: {
-        service: deals.filter(d => dealMeta[d.id]?.type === 'service').length,
-        maintenance: deals.filter(d => dealMeta[d.id]?.type === 'maintenance').length,
-        install: deals.filter(d => dealMeta[d.id]?.type === 'install').length,
-        sales: deals.filter(d => dealMeta[d.id]?.type === 'sales').length
-      }
-    };
-  }, [deals, dealMeta]);
+    // Apply stage filter
+    filtered = filtered.filter(d => {
+      const meta = dealMeta[d.id] || {};
+      if (filter === 'all') return true;
+      return (meta.stage || 'open') === filter;
+    });
+
+    return filtered;
+  }, [deals, dealMeta, search, filter, user]);
 
   const StatCard = ({ label, value, color = 'amber' }) => (
     <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4 backdrop-blur-sm">
@@ -88,9 +84,21 @@ export default function LionsHub() {
     </div>
   );
 
+  const getJobTypeColor = (type) => {
+    const colors = {
+      'Service': 'cyan',
+      'Maintenance': 'purple',
+      'Install': 'orange',
+      'Sales': 'blue'
+    };
+    return colors[type] || 'slate';
+  };
+
   const DealRow = ({ deal }) => {
     const meta = dealMeta[deal.id] || {};
     const price = meta.price || deal.jobTotalAmount || 0;
+    const jobType = deal.jobType || 'Service'; // From HCP
+    const isTech = user?.type === 'tech';
 
     return (
       <div className="bg-slate-800/40 border border-slate-700/40 rounded-lg p-4 hover:bg-slate-800/60 transition">
@@ -102,15 +110,15 @@ export default function LionsHub() {
           <p className="text-amber-500 font-bold text-lg ml-4">${price.toLocaleString()}</p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-3">
-          <select value={meta.type || ''} onChange={(e) => updateDeal(deal.id, 'type', e.target.value)} className="px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded text-xs text-white font-semibold">
-            <option value="">Type</option>
-            <option value="service">Service</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="install">Install</option>
-            <option value="sales">Sales</option>
-          </select>
+        {/* Job Type - READ ONLY (from HCP) */}
+        <div className="mb-3">
+          <span className={`text-xs font-bold px-3 py-1.5 rounded-full bg-${getJobTypeColor(jobType)}-900/30 text-${getJobTypeColor(jobType)}-300 border border-${getJobTypeColor(jobType)}-700/50`}>
+            {jobType}
+          </span>
+        </div>
 
+        {/* Editable Fields */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
           <select value={meta.stage || 'open'} onChange={(e) => updateDeal(deal.id, 'stage', e.target.value)} className="px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded text-xs text-white font-semibold">
             <option value="open">Open</option>
             <option value="negotiating">Negotiating</option>
@@ -121,7 +129,8 @@ export default function LionsHub() {
           <input type="number" value={price} onChange={(e) => updateDeal(deal.id, 'price', parseFloat(e.target.value))} className="px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded text-xs text-white font-semibold" />
         </div>
 
-        <div className="flex gap-2">
+        {/* Contact */}
+        <div className="flex gap-2 mb-3">
           {deal.phone && (
             <>
               <a href={`tel:${deal.phone}`} className="flex-1 px-3 py-1.5 bg-blue-600/40 hover:bg-blue-600/60 border border-blue-500/30 rounded text-xs font-semibold text-blue-300 text-center transition flex items-center justify-center gap-1">
@@ -133,6 +142,14 @@ export default function LionsHub() {
             </>
           )}
         </div>
+
+        {/* Tech Assignment - Sales reps only */}
+        {!isTech && (
+          <select value={meta.assignedTech || ''} onChange={(e) => updateDeal(deal.id, 'assignedTech', e.target.value)} className="w-full px-3 py-1.5 bg-slate-700/50 border border-slate-600/50 rounded text-xs text-white font-semibold">
+            <option value="">→ Assign Tech</option>
+            {techTeam.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
+          </select>
+        )}
       </div>
     );
   };
@@ -178,8 +195,7 @@ export default function LionsHub() {
   }
 
   if (view === 'dashboard') {
-    const isTech = user.type === 'tech';
-    const userDeals = isTech ? deals.filter(d => dealMeta[d.id]?.tech === user.name) : deals;
+    const isTech = user?.type === 'tech';
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800">
@@ -196,14 +212,12 @@ export default function LionsHub() {
               </button>
             </div>
 
-            {/* Analytics */}
-            <div className="grid grid-cols-6 gap-3 mb-6">
-              <StatCard label="Pipeline" value={`$${(analytics.totalValue / 1000).toFixed(1)}k`} />
-              <StatCard label="Commission" value={`$${(analytics.totalCommission / 1000).toFixed(1)}k`} />
-              <StatCard label="Open" value={analytics.byStage.open} color="blue" />
-              <StatCard label="Negotiating" value={analytics.byStage.negotiating} color="yellow" />
-              <StatCard label="Sold" value={analytics.byStage.sold} color="emerald" />
-              <StatCard label="Lost" value={analytics.byStage.lost} color="red" />
+            {/* Stats */}
+            <div className="grid grid-cols-4 gap-3 mb-6">
+              <StatCard label="Pipeline" value={`$${(filteredDeals.reduce((sum, d) => sum + (dealMeta[d.id]?.price || d.jobTotalAmount || 0), 0) / 1000).toFixed(1)}k`} />
+              <StatCard label="Open" value={filteredDeals.filter(d => (dealMeta[d.id]?.stage || 'open') === 'open').length} color="blue" />
+              <StatCard label="Negotiating" value={filteredDeals.filter(d => dealMeta[d.id]?.stage === 'negotiating').length} color="yellow" />
+              <StatCard label="Sold" value={filteredDeals.filter(d => dealMeta[d.id]?.stage === 'sold').length} color="emerald" />
             </div>
 
             {/* Search & Filter */}
@@ -227,7 +241,7 @@ export default function LionsHub() {
         <div className="max-w-7xl mx-auto px-8 py-12">
           {filteredDeals.length === 0 ? (
             <div className="text-center py-20">
-              <p className="text-slate-400 text-lg">No deals found</p>
+              <p className="text-slate-400 text-lg">{isTech ? 'No jobs assigned to you' : 'No deals found'}</p>
             </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
