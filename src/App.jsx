@@ -1,100 +1,87 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, MessageSquare, LogOut, TrendingUp, Award, BarChart3, Zap, CheckCircle, XCircle, Truck, Mail, MapPin, ChevronRight } from 'lucide-react';
+import { LogOut, Phone, MessageSquare, Zap, Settings } from 'lucide-react';
 
 export default function SalesCommandCenter() {
-  const [authState, setAuthState] = useState('login');
-  const [currentUser, setCurrentUser] = useState(null);
-  const [userType, setUserType] = useState(null);
+  const [screen, setScreen] = useState('login');
+  const [user, setUser] = useState(null);
   const [deals, setDeals] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [filterTag, setFilterTag] = useState('all');
-  const [viewMode, setViewMode] = useState('pipeline');
-  const [pipelineView, setPipelineView] = useState('open');
-  const [dealStatus, setDealStatus] = useState({});
+  const [status, setStatus] = useState({});
 
-  const salesReps = [
-    { id: 'tristan', name: 'Tristan' },
-    { id: 'michael', name: 'Michael' },
-    { id: 'jake-b', name: 'Jake Bernard' },
-    { id: 'catherine', name: 'Catherine' }
-  ];
-
-  const technicians = ['Ed Pfeiffer', 'Jake Casmay', 'Josh Fazio', 'Greg Janowski', 'Scott Deakin', 'Tyler Gilliland', 'Will Egoavil', 'Ethan Harker'];
-  const allStaff = [...salesReps, ...technicians.map(tech => ({ id: tech, name: tech }))];
+  const reps = ['Tristan', 'Michael', 'Jake Bernard', 'Catherine'];
+  const techs = ['Ed Pfeiffer', 'Jake Casmay', 'Josh Fazio', 'Greg Janowski', 'Scott Deakin', 'Tyler Gilliland', 'Will Egoavil', 'Ethan Harker'];
+  const allUsers = [...reps, ...techs];
 
   const loadDeals = async () => {
     setLoading(true);
     try {
-      const [hcpRes, completedRes] = await Promise.all([fetch('/.netlify/functions/hcp-fetch-estimates'), fetch('/.netlify/functions/fetch-completed-jobs')]);
-      const hcpData = await hcpRes.json();
-      const completedData = await completedRes.json();
-      const allDeals = [...(hcpData.deals || []), ...(completedData.deals || [])];
-      setDeals(allDeals);
-      localStorage.setItem('lionsSalesDeals', JSON.stringify(allDeals));
-    } catch (err) { console.error('Failed:', err); }
+      const [hcp, comp] = await Promise.all([
+        fetch('/.netlify/functions/hcp-fetch-estimates'),
+        fetch('/.netlify/functions/fetch-completed-jobs')
+      ]);
+      const hcpData = await hcp.json();
+      const compData = await comp.json();
+      setDeals([...(hcpData.deals || []), ...(compData.deals || [])]);
+    } catch (e) { console.error(e); }
     setLoading(false);
   };
 
   useEffect(() => {
-    const savedStatus = localStorage.getItem('lionsDealStatus');
-    if (savedStatus) setDealStatus(JSON.parse(savedStatus));
-    const saved = localStorage.getItem('lionsSalesDeals');
-    if (saved) { try { setDeals(JSON.parse(saved)); } catch (e) { loadDeals(); } } else { loadDeals(); }
+    const s = localStorage.getItem('dealStatus');
+    if (s) setStatus(JSON.parse(s));
+    const d = localStorage.getItem('deals');
+    if (d) setDeals(JSON.parse(d));
+    else loadDeals();
   }, []);
 
-  useEffect(() => { localStorage.setItem('lionsDealStatus', JSON.stringify(dealStatus)); }, [dealStatus]);
+  useEffect(() => { localStorage.setItem('dealStatus', JSON.stringify(status)); }, [status]);
+  useEffect(() => { localStorage.setItem('deals', JSON.stringify(deals)); }, [deals]);
 
-  const getDealTags = (deal) => {
-    if (deal.jobTag) return [deal.jobTag];
-    const desc = (deal.description || '').toLowerCase();
-    const tags = [];
-    if (desc.includes('service')) tags.push('Service');
-    if (desc.includes('install')) tags.push('Install');
-    if (desc.includes('maintenance')) tags.push('Maintenance');
-    if (!tags.length) tags.push('Sales');
-    return tags;
+  const updateDeal = (id, key, val) => {
+    setStatus(prev => ({ ...prev, [id]: { ...prev[id], [key]: val } }));
   };
 
-  const handleLogin = (id, type) => {
-    if (type === 'rep') { setCurrentUser(salesReps.find(r => r.id === id)); setViewMode('pipeline'); } 
-    else { setCurrentUser({ id, name: id }); setViewMode('performance'); }
-    setUserType(type);
-    setAuthState('dashboard');
-  };
-
-  const handleLogout = () => {
-    setAuthState('login');
-    setCurrentUser(null);
-    setUserType(null);
-  };
-
-  const getDisplayPrice = (deal, status) => {
-    return status.customPrice !== undefined ? status.customPrice : (deal.jobTotalAmount || 0);
-  };
-
-  if (authState === 'login') {
+  if (screen === 'login') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          <div className="bg-white rounded-2xl shadow-2xl p-10">
-            <div className="flex justify-center mb-8">
-              <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-white text-xl font-bold tracking-tighter">L</span>
+        <div className="w-full max-w-xl">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 shadow-2xl">
+            <div className="mb-12 text-center">
+              <div className="inline-block bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl p-3 mb-6">
+                <span className="text-white text-3xl font-bold">🦁</span>
               </div>
+              <h1 className="text-4xl font-bold text-white mb-2">Lions</h1>
+              <p className="text-amber-400 font-semibold">Sales & Operations Hub</p>
             </div>
-            <h1 className="text-4xl font-bold text-center text-slate-900 mb-2 tracking-tight">Lions Sales</h1>
-            <p className="text-center text-amber-700 font-semibold mb-10 text-sm">Command Center</p>
+
             <div className="space-y-8">
               <div>
-                <h2 className="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest">Sales Representatives</h2>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Sales Representatives</p>
                 <div className="grid grid-cols-2 gap-3">
-                  {salesReps.map(rep => (<button key={rep.id} onClick={() => handleLogin(rep.id, 'rep')} className="p-3 bg-slate-50 hover:bg-amber-50 border-2 border-slate-200 hover:border-amber-400 rounded-lg text-sm font-semibold text-slate-900 transition duration-200">{rep.name}</button>))}
+                  {reps.map(name => (
+                    <button
+                      key={name}
+                      onClick={() => { setUser({ name, type: 'rep' }); setScreen('rep'); }}
+                      className="p-4 bg-blue-900/30 hover:bg-blue-800/50 border border-blue-700/50 hover:border-blue-600 rounded-lg text-sm font-semibold text-blue-100 transition duration-200"
+                    >
+                      {name}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div className="border-t border-slate-200 pt-8">
-                <h2 className="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest">Technicians</h2>
+
+              <div className="border-t border-slate-800 pt-8">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Technicians</p>
                 <div className="grid grid-cols-2 gap-3">
-                  {technicians.map(tech => (<button key={tech} onClick={() => handleLogin(tech, 'tech')} className="p-3 bg-slate-50 hover:bg-emerald-50 border-2 border-slate-200 hover:border-emerald-400 rounded-lg text-sm font-semibold text-slate-900 transition duration-200">{tech.split(' ')[0]}</button>))}
+                  {techs.map(name => (
+                    <button
+                      key={name}
+                      onClick={() => { setUser({ name, type: 'tech' }); setScreen('tech'); }}
+                      className="p-4 bg-emerald-900/30 hover:bg-emerald-800/50 border border-emerald-700/50 hover:border-emerald-600 rounded-lg text-sm font-semibold text-emerald-100 transition duration-200"
+                    >
+                      {name.split(' ')[0]}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -105,144 +92,233 @@ export default function SalesCommandCenter() {
   }
 
   const DealCard = ({ deal }) => {
-    const status = dealStatus[deal.id] || {};
-    const displayPrice = getDisplayPrice(deal, status);
-    
+    const d = status[deal.id] || {};
+    const price = d.customPrice !== undefined ? d.customPrice : (deal.jobTotalAmount || 0);
+
     return (
-      <div className="bg-white rounded-xl shadow-sm hover:shadow-md border border-slate-200 hover:border-slate-300 transition overflow-hidden">
-        <div className="p-5">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <h3 className="font-bold text-slate-900 text-lg mb-1">{deal.customerName}</h3>
-              <p className="text-sm text-slate-500">{deal.phone || 'No phone'}</p>
-            </div>
-            <p className="font-bold text-amber-700 text-2xl ml-4">${displayPrice.toLocaleString()}</p>
+      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-5 hover:border-slate-600 transition">
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex-1">
+            <h3 className="font-bold text-white text-lg">{deal.customerName}</h3>
+            {deal.phone && <p className="text-sm text-slate-400">{deal.phone}</p>}
+          </div>
+          <p className="text-amber-400 font-bold text-xl ml-4">${price.toLocaleString()}</p>
+        </div>
+
+        {deal.address && <p className="text-sm text-slate-400 mb-3">{deal.address}</p>}
+
+        <div className="space-y-3 border-t border-slate-700 pt-3">
+          {/* Custom Tags */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Add tag"
+              value={d.newTag || ''}
+              onChange={(e) => updateDeal(deal.id, 'newTag', e.target.value)}
+              className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white placeholder-slate-500"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && d.newTag?.trim()) {
+                  updateDeal(deal.id, 'tags', [...(d.tags || []), d.newTag.trim()]);
+                  updateDeal(deal.id, 'newTag', '');
+                }
+              }}
+            />
+            <button
+              onClick={() => {
+                if (d.newTag?.trim()) {
+                  updateDeal(deal.id, 'tags', [...(d.tags || []), d.newTag.trim()]);
+                  updateDeal(deal.id, 'newTag', '');
+                }
+              }}
+              className="px-3 py-2 bg-amber-600 hover:bg-amber-700 rounded text-sm font-semibold text-white transition"
+            >
+              Add
+            </button>
           </div>
 
-          {(deal.address || deal.phone || deal.email) && (
-            <div className="bg-slate-50 p-4 rounded-lg mb-4 space-y-2 text-sm">
-              {deal.address && (<div className="flex items-start gap-3"><MapPin className="w-4 h-4 text-slate-600 mt-0.5 flex-shrink-0" /><p className="text-slate-700">{deal.address}</p></div>)}
-              {deal.email && (<div className="flex items-center gap-3"><Mail className="w-4 h-4 text-slate-600 flex-shrink-0" /><p className="text-slate-700 break-all">{deal.email}</p></div>)}
+          {d.tags && d.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {d.tags.map(tag => (
+                <div key={tag} className="bg-amber-900/40 border border-amber-700/50 px-2 py-1 rounded text-xs font-semibold text-amber-300 flex items-center gap-2">
+                  {tag}
+                  <button onClick={() => updateDeal(deal.id, 'tags', d.tags.filter(t => t !== tag))} className="hover:text-amber-200">×</button>
+                </div>
+              ))}
             </div>
           )}
 
-          <div className="flex gap-2 mb-4">
-            {getDealTags(deal).map(tag => (<span key={tag} className="text-xs bg-amber-100 text-amber-900 px-3 py-1 rounded-full font-semibold">{tag}</span>))}
+          {/* Deal Stage */}
+          <select
+            value={d.stage || 'Negotiating'}
+            onChange={(e) => updateDeal(deal.id, 'stage', e.target.value)}
+            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
+          >
+            <option>Negotiating</option>
+            <option>Sold</option>
+            <option>Lost</option>
+            <option>On Hold</option>
+          </select>
+
+          {/* Price Edit */}
+          <input
+            type="number"
+            value={price}
+            onChange={(e) => updateDeal(deal.id, 'customPrice', parseFloat(e.target.value))}
+            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
+            placeholder="Price"
+          />
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            {deal.phone && (
+              <>
+                <a href={`tel:${deal.phone}`} className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm font-semibold text-white text-center transition flex items-center justify-center gap-2">
+                  <Phone className="w-4 h-4" /> Call
+                </a>
+                <a href={`sms:${deal.phone}`} className="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 rounded text-sm font-semibold text-white text-center transition flex items-center justify-center gap-2">
+                  <MessageSquare className="w-4 h-4" /> Text
+                </a>
+              </>
+            )}
           </div>
 
-          {deal.phone && (
-            <div className="flex gap-2 mb-4">
-              <a href={`tel:${deal.phone}`} className="flex-1 flex items-center justify-center gap-2 text-sm text-white font-semibold bg-blue-600 hover:bg-blue-700 rounded-lg py-2.5 transition"><Phone className="w-4 h-4" /> Call</a>
-              <a href={`sms:${deal.phone}`} className="flex-1 flex items-center justify-center gap-2 text-sm text-white font-semibold bg-emerald-600 hover:bg-emerald-700 rounded-lg py-2.5 transition"><MessageSquare className="w-4 h-4" /> Text</a>
-            </div>
-          )}
+          {/* Assign Tech */}
+          <select
+            value={d.tech || ''}
+            onChange={(e) => updateDeal(deal.id, 'tech', e.target.value)}
+            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
+          >
+            <option value="">Assign Tech</option>
+            {techs.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
 
-          <div className="border-t border-slate-200 pt-4 space-y-3">
-            <input type="number" value={displayPrice} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], customPrice: parseFloat(e.target.value) || 0 } }))} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold bg-white text-slate-900 placeholder-slate-500" placeholder="Edit price" />
+          {/* Who Made Sale */}
+          <select
+            value={d.soldBy || ''}
+            onChange={(e) => updateDeal(deal.id, 'soldBy', e.target.value)}
+            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-sm text-white font-semibold"
+          >
+            <option value="">Who Made Sale</option>
+            {allUsers.map(u => <option key={u} value={u}>{u}</option>)}
+          </select>
 
-            <div className="flex gap-2">
-              <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], sold: !prev[deal.id]?.sold } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${status.sold ? 'bg-emerald-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}><CheckCircle className="w-4 h-4" /> Sold</button>
-              <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], lost: !prev[deal.id]?.lost } }))} className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${status.lost ? 'bg-red-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}><XCircle className="w-4 h-4" /> Lost</button>
-            </div>
-            <button onClick={() => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], equipped: !prev[deal.id]?.equipped } }))} className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition ${status.equipped ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}><Truck className="w-4 h-4" /> Equipment Ordered</button>
-            <select value={status.assignedTech || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], assignedTech: e.target.value } }))} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="">Assign Tech</option>{technicians.map(tech => (<option key={tech} value={tech}>{tech}</option>))}</select>
-            <select value={status.salesPerson || ''} onChange={(e) => setDealStatus(prev => ({ ...prev, [deal.id]: { ...prev[deal.id], salesPerson: e.target.value } }))} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="">Who Made Sale</option>{allStaff.map(person => (<option key={person.id} value={person.name}>{person.name}</option>))}</select>
-          </div>
+          {/* Equipment Ordered */}
+          <button
+            onClick={() => updateDeal(deal.id, 'equipped', !d.equipped)}
+            className={`w-full px-3 py-2 rounded text-sm font-semibold transition ${
+              d.equipped ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+            }`}
+          >
+            {d.equipped ? '✓ Equipment Ordered' : 'Equipment Ordered'}
+          </button>
         </div>
       </div>
     );
   };
 
-  if (viewMode === 'pipeline' && userType === 'rep') {
-    const filteredDeals = deals.filter(deal => {
-      if (filterTag !== 'all' && !getDealTags(deal).includes(filterTag)) return false;
-      const status = dealStatus[deal.id] || {};
-      if (pipelineView === 'open' && !status.sold && !status.lost) return true;
-      if (pipelineView === 'equipped' && status.equipped && !status.sold && !status.lost) return true;
-      if (pipelineView === 'sold' && status.sold) return true;
-      if (pipelineView === 'lost' && status.lost) return true;
-      return false;
+  if (screen === 'rep') {
+    const [filter, setFilter] = useState('all');
+    const filtered = deals.filter(deal => {
+      const d = status[deal.id] || {};
+      if (filter === 'negotiating') return (d.stage || 'Negotiating') === 'Negotiating';
+      if (filter === 'sold') return d.stage === 'Sold';
+      if (filter === 'lost') return d.stage === 'Lost';
+      if (filter === 'onhold') return d.stage === 'On Hold';
+      return true;
     });
 
     return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-6 py-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">Sales Pipeline</h1>
-                <p className="text-sm text-slate-600 mt-1">{currentUser?.name}</p>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={() => { localStorage.removeItem('lionsSalesDeals'); loadDeals(); }} className="p-2.5 hover:bg-slate-100 rounded-lg transition"><Zap className="w-5 h-5 text-amber-600" /></button>
-                <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg font-semibold text-sm transition"><LogOut className="w-4 h-4" /> Logout</button>
-              </div>
+      <div className="min-h-screen bg-slate-950">
+        <div className="sticky top-0 z-40 bg-slate-900 border-b border-slate-800 p-6">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white">Sales Pipeline</h1>
+              <p className="text-amber-400 text-sm mt-1">{user.name}</p>
             </div>
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {['open', 'equipped', 'sold', 'lost'].map(view => (<button key={view} onClick={() => setPipelineView(view)} className={`px-4 py-2.5 rounded-lg font-semibold text-sm whitespace-nowrap transition ${pipelineView === view ? 'bg-amber-600 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>{view === 'open' ? 'Open' : view === 'equipped' ? 'Equipment Ordered' : view === 'sold' ? 'Sold' : 'Lost'}</button>))}
-            </div>
-            <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)} className="px-4 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold bg-white text-slate-900"><option value="all">All Tags</option><option value="Sales">Sales</option><option value="Service">Service</option><option value="Install">Install</option><option value="Maintenance">Maintenance</option></select>
+            <button
+              onClick={() => { setUser(null); setScreen('login'); }}
+              className="flex items-center gap-2 px-4 py-2 bg-red-900/30 hover:bg-red-800/50 border border-red-700/50 rounded-lg text-red-300 font-semibold transition"
+            >
+              <LogOut className="w-4 h-4" /> Logout
+            </button>
+          </div>
+          <div className="max-w-7xl mx-auto mt-6 flex gap-2 overflow-x-auto">
+            {[
+              { id: 'all', label: 'All Deals' },
+              { id: 'negotiating', label: 'Negotiating' },
+              { id: 'sold', label: 'Sold' },
+              { id: 'lost', label: 'Lost' },
+              { id: 'onhold', label: 'On Hold' }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={`px-4 py-2 rounded-lg font-semibold text-sm transition whitespace-nowrap ${
+                  filter === f.id
+                    ? 'bg-amber-600 text-white'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-6 py-8">
-          {loading ? <p className="text-center py-12 text-slate-500">Loading...</p> : filteredDeals.length === 0 ? <p className="text-center py-8 text-slate-500">No deals in this view</p> : <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">{filteredDeals.map(deal => <DealCard key={deal.id} deal={deal} />)}</div>}
+          {loading ? (
+            <p className="text-center text-slate-400">Loading...</p>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filtered.map(deal => <DealCard key={deal.id} deal={deal} />)}
+            </div>
+          )}
         </div>
       </div>
     );
   }
 
-  if (userType === 'tech' && viewMode === 'performance') {
-    const techDeals = deals.filter(d => d.commissionTech === currentUser.name);
-    const totalRevenue = techDeals.reduce((sum, d) => sum + (d.commissionAmount || 0), 0);
-    const jobCount = techDeals.length;
+  if (screen === 'tech') {
+    const myDeals = deals.filter(d => status[d.id]?.tech === user.name);
+    const totalCommission = myDeals.reduce((sum, d) => sum + (d.commissionAmount || 0), 0);
+
     return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-slate-900">{currentUser?.name}</h1>
-            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg font-semibold text-sm transition"><LogOut className="w-4 h-4" /> Logout</button>
+      <div className="min-h-screen bg-slate-950">
+        <div className="sticky top-0 z-40 bg-slate-900 border-b border-slate-800 p-6">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white">{user.name}</h1>
+              <p className="text-emerald-400 text-sm mt-1">Performance</p>
+            </div>
+            <button
+              onClick={() => { setUser(null); setScreen('login'); }}
+              className="flex items-center gap-2 px-4 py-2 bg-red-900/30 hover:bg-red-800/50 border border-red-700/50 rounded-lg text-red-300 font-semibold transition"
+            >
+              <LogOut className="w-4 h-4" /> Logout
+            </button>
           </div>
-          <div className="max-w-7xl mx-auto px-6 pb-4 flex gap-2 border-t border-slate-200">
-            <button onClick={() => setViewMode('performance')} className="px-4 py-3 rounded-t-lg font-semibold text-sm bg-amber-600 text-white">Performance</button>
-            <button onClick={() => setViewMode('history')} className="px-4 py-3 rounded-t-lg font-semibold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">History</button>
+          <div className="max-w-7xl mx-auto mt-6 grid grid-cols-3 gap-4">
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
+              <p className="text-xs text-slate-400 font-semibold uppercase mb-2">Commission</p>
+              <p className="text-2xl font-bold text-amber-400">${totalCommission.toLocaleString()}</p>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
+              <p className="text-xs text-slate-400 font-semibold uppercase mb-2">Jobs</p>
+              <p className="text-2xl font-bold text-emerald-400">{myDeals.length}</p>
+            </div>
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
+              <p className="text-xs text-slate-400 font-semibold uppercase mb-2">Avg Commission</p>
+              <p className="text-2xl font-bold text-blue-400">${myDeals.length > 0 ? Math.round(totalCommission / myDeals.length) : 0}</p>
+            </div>
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6"><div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-slate-600 mb-2">Total Commission</p><p className="text-4xl font-bold text-amber-700">${totalRevenue.toLocaleString()}</p></div><Award className="w-10 h-10 text-amber-200" /></div></div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6"><div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-slate-600 mb-2">Jobs Completed</p><p className="text-4xl font-bold text-slate-900">{jobCount}</p></div><TrendingUp className="w-10 h-10 text-slate-200" /></div></div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6"><div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-slate-600 mb-2">Avg Commission</p><p className="text-4xl font-bold text-slate-900">${jobCount > 0 ? Math.round(totalRevenue / jobCount).toLocaleString() : 0}</p></div><BarChart3 className="w-10 h-10 text-slate-200" /></div></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (userType === 'tech' && viewMode === 'history') {
-    const techDeals = deals.filter(d => d.commissionTech === currentUser.name);
-    const groupedByMonth = {};
-    techDeals.forEach(deal => {
-      const date = deal.completedDate || new Date().toISOString().split('T')[0];
-      const month = date.substring(0, 7);
-      if (!groupedByMonth[month]) groupedByMonth[month] = [];
-      groupedByMonth[month].push(deal);
-    });
-    const sortedMonths = Object.keys(groupedByMonth).sort().reverse();
-
-    return (
-      <div className="min-h-screen bg-slate-50">
-        <div className="bg-white border-b border-slate-200 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-slate-900">{currentUser?.name} — History</h1>
-            <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg font-semibold text-sm transition"><LogOut className="w-4 h-4" /> Logout</button>
-          </div>
-          <div className="max-w-7xl mx-auto px-6 pb-4 flex gap-2 border-t border-slate-200">
-            <button onClick={() => setViewMode('performance')} className="px-4 py-3 rounded-t-lg font-semibold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200">Performance</button>
-            <button onClick={() => setViewMode('history')} className="px-4 py-3 rounded-t-lg font-semibold text-sm bg-amber-600 text-white">History</button>
-          </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          {sortedMonths.length === 0 ? <p className="text-center py-12 text-slate-500">No jobs completed</p> : sortedMonths.map(month => (<div key={month} className="mb-8"><h2 className="text-sm font-bold text-slate-700 mb-4 uppercase tracking-widest">{month}</h2><div className="space-y-2">{groupedByMonth[month].map(deal => (<div key={deal.id} className="bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 flex justify-between items-center transition"><div><p className="font-semibold text-slate-900">{deal.customerName}</p><p className="text-sm text-slate-500">{deal.completedDate}</p></div><p className="font-bold text-amber-700 text-lg">${(deal.commissionAmount || 0).toLocaleString()}</p></div>))}</div></div>))}
+          {myDeals.length === 0 ? (
+            <p className="text-center text-slate-400 py-12">No jobs assigned</p>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {myDeals.map(deal => <DealCard key={deal.id} deal={deal} />)}
+            </div>
+          )}
         </div>
       </div>
     );
