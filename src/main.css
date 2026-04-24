@@ -1,45 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* {
-  font-family: 'Outfit', sans-serif;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Syne', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.8px;
-}
+* { font-family: 'Inter', sans-serif; }
+h1,h2,h3,h4,h5,h6 { font-family: 'Syne', sans-serif; font-weight: 700; }
 
 :root {
-  --primary: #0F0F0F;
-  --secondary: #1A1A1A;
-  --tertiary: #2D2D2D;
+  --primary: #0A0E27;
+  --secondary: #111729;
   --accent: #D97706;
   --success: #10B981;
-  --danger: #EF4444;
-  --info: #3B82F6;
   --warning: #F59E0B;
+  --danger: #EF4444;
 }
 
-body {
-  background: linear-gradient(135deg, #0F0F0F 0%, #1A1A1A 100%);
-  color: #F5F5F5;
-}
+body { background: linear-gradient(135deg, #0A0E27 0%, #111729 100%); color: #F5F5F5; }
 
-::selection {
-  background: var(--accent);
-  color: white;
-}
-
-input, select, textarea {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-input:focus, select:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+@layer base {
+  input, select, textarea { @apply transition-all duration-200; }
+  input:focus, select:focus { @apply outline-none ring-2 ring-amber-600/50; }
+  button { @apply transition-all duration-200; }
+  button:hover { @apply scale-105; }
 }
